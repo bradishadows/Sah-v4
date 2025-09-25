@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - Sah Analytics {% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
+    <div class="max-w-7xl mx-auto px-4 py-16">
+        <!-- Hero Section -->
+        <div class="text-center mb-16 animate-fade-in">
+            <h1 class="text-5xl font-bold text-gray-900 dark:text-white mb-6">
+                🍽️ Sah Analytics Cantine
+            </h1>
+            <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+               Manger Mieux Pour Performer Plus.
+            </p>
+            
+            {% if not user.is_authenticated %}
+            <div class="space-x-4">
+                <a href="{% url 'inscription' %}" 
+                   class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition duration-300 text-lg font-semibold">
+                    Créer un compte
+                </a>
+                <a href="{% url 'connexion' %}" 
+                   class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition duration-300 text-lg font-semibold">
+                    Se connecter
+                </a>
+            </div>
+            {% else %}
+            <div class="space-x-4">
+                <a href="{% url 'collaborateur_dashboard' %}" 
+                   class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition duration-300 text-lg font-semibold">
+                    Accéder à mon dashboard
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        
+</div>
+{% endblock %}

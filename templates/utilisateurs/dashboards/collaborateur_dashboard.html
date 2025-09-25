@@ -1,0 +1,736 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}- Sah Analytics{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'culinary': {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            200: '#fed7aa',
+                            300: '#fdba74',
+                            400: '#fb923c',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            800: '#9a3412',
+                            900: '#7c2d12',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulse-glow 2s ease-in-out infinite alternate',
+                        'fadeIn': 'fadeIn 0.3s ease',
+                        'modalSlideIn': 'modalSlideIn 0.3s ease forwards',
+                        'stagger': 'stagger 0.6s ease forwards',
+                        'commandPulse': 'commandPulse 0.6s ease',
+                        'loading': 'loading 1.5s infinite',
+                        'bounce-gentle': 'bounce-gentle 2s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    {% block extra_css %}
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --culinary-gradient: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+        }
+
+        .glass-effect {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dark .glass-effect {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .plat-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .dark .plat-card {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .plat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                0 0 0 1px rgba(251, 146, 60, 0.1);
+        }
+
+        .plat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.7s;
+        }
+
+        .plat-card:hover::before {
+            left: 100%;
+        }
+
+        .floating-element {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-10px) rotate(1deg); }
+            66% { transform: translateY(-5px) rotate(-1deg); }
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            from { 
+                box-shadow: 0 0 20px rgba(251, 146, 60, 0.3);
+                transform: scale(1);
+            }
+            to { 
+                box-shadow: 0 0 30px rgba(251, 146, 60, 0.6);
+                transform: scale(1.05);
+            }
+        }
+
+        .nutrition-ring {
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .menu-day-active {
+            background: var(--culinary-gradient);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(251, 146, 60, 0.3);
+        }
+
+        .stagger-animation > * {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: stagger 0.6s ease forwards;
+        }
+
+        @keyframes stagger {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .gradient-text {
+            background: var(--culinary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hover-lift {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .etoile {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #d1d5db;
+        }
+
+        .etoile.active {
+            color: #fbbf24;
+        }
+
+        .etoile:hover {
+            transform: scale(1.3);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            animation: modalSlideIn 0.3s ease forwards;
+        }
+
+        @keyframes modalSlideIn {
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .dark .modal-content {
+            background: #1f2937;
+        }
+
+        .progress-ring {
+            width: 80px;
+            height: 80px;
+        }
+
+        .progress-ring-circle {
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .command-animation {
+            animation: commandPulse 0.6s ease;
+        }
+
+        @keyframes commandPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .skeleton-loader {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        .dark .skeleton-loader {
+            background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .scrollbar-thin {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
+        }
+
+        .grid-view .plat-card {
+            display: block;
+        }
+
+        .list-view .plat-card {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .list-view .plat-card > * {
+            flex: 1;
+        }
+
+        .list-view .plat-card .nutrition-info {
+            display: none;
+        }
+
+        .stagger-delay-1 { animation-delay: 0.1s; }
+        .stagger-delay-2 { animation-delay: 0.2s; }
+        .stagger-delay-3 { animation-delay: 0.3s; }
+        .stagger-delay-4 { animation-delay: 0.4s; }
+
+        @keyframes bounce-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .culinary-badge {
+            background: var(--culinary-gradient);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .specialty-tag {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 10;
+        }
+
+        .plat-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plat-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: linear-gradient(transparent, rgba(0,0,0,0.5));
+        }
+
+        .day-highlight {
+            border-left: 4px solid #fb923c;
+            background: rgba(251, 146, 60, 0.05);
+        }
+
+        .dark .day-highlight {
+            background: rgba(251, 146, 60, 0.1);
+        }
+    </style>
+    {% endblock %}
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    
+    <div class="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-300 dark:from-blue-900 dark:via-gray-800 dark:to-blue-900 py-8">
+
+        <!-- Background Elements Animés -->
+        <div class="fixed inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-40 -right-40 w-80 h-80 bg-culinary-200 rounded-full blur-3xl opacity-20 dark:bg-culinary-900 dark:opacity-10 floating-element"></div>
+            <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-amber-200 rounded-full blur-3xl opacity-20 dark:bg-amber-900 dark:opacity-10 floating-element" style="animation-delay: 2s;"></div>
+            <div class="absolute top-1/4 left-1/4 w-40 h-40 bg-orange-200 rounded-full blur-2xl opacity-10 dark:bg-orange-900 dark:opacity-5 floating-element" style="animation-delay: 4s;"></div>
+        </div>
+
+        <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <!-- Header Premium Amélioré avec Bouton Déconnexion -->
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12">
+                <div class="mb-6 lg:mb-0">
+                    <div class="flex items-center space-x-6">
+                        <div class="relative group">
+                            <div class="w-24 h-24 bg-gradient-to-r from-culinary-500 via-orange-500 to-amber-500 rounded-3xl flex items-center justify-center text-white text-4xl font-bold shadow-2xl transform group-hover:scale-110 transition-transform duration-500">
+                                {{ user.prenom|first }}{{ user.nom|first }}
+                            </div>
+                            <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-green-400 rounded-full border-4 border-white dark:border-gray-900 shadow-lg pulse-glow"></div>
+                        </div>
+                        <div>
+                            <h1 class="text-5xl font-bold text-gray-900 dark:text-white mb-3">
+                                Bon appétit, <span class="gradient-text">{{ user.prenom }}</span> !
+                            </h1>
+                            
+                            <div class="flex flex-wrap items-center gap-3">
+                                <span class="px-4 py-2 bg-culinary-100 text-culinary-800 text-sm rounded-full font-medium dark:bg-culinary-900 dark:text-culinary-200 shadow-sm hover-lift">
+                                    📍 {{ user.bloc }}
+                                </span>
+                                <span class="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                                    <i class="fas fa-clock mr-2"></i> Dernière connexion: {{ user.last_login|date:"d/m/Y H:i" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Boutons d'action avec Déconnexion -->
+                <div class="flex flex-wrap gap-4">
+                    <button class="px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-2xl font-semibold shadow-lg hover-lift transition-all duration-300 flex items-center gap-3">
+                        <i class="fas fa-history text-culinary-500"></i>
+                        Historique
+                    </button>
+                    <button class="px-6 py-3 bg-gradient-to-r from-culinary-500 to-culinary-600 text-white rounded-2xl font-semibold shadow-lg hover-lift transition-all duration-300 flex items-center gap-3 pulse-glow">
+                        <i class="fas fa-plus"></i>
+                        Nouvelle commande
+                    </button>
+                    <!-- Bouton Déconnexion -->
+                    <a href="{% url 'logout' %}" class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl font-semibold shadow-lg hover-lift transition-all duration-300 flex items-center gap-3 hover:from-red-600 hover:to-red-700">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Déconnexion
+                    </a>
+                </div>
+            </div>
+
+            <!-- Contenu Principal Optimisé -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <!-- Colonne Gauche - Menu Principal -->
+                <div class="xl:col-span-2 space-y-8">
+                    <!-- Menu de la Semaine avec Navigation Avancée -->
+                    <div class="bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-2xl glass-effect">
+                        <div class="p-8">
+                            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
+                                <div>
+                                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">🍽️ Menu de la Semaine</h2>
+                                    <p class="text-gray-600 dark:text-gray-300 text-lg">Du 21 Septembre 2025au 26 Septembre 2025</p>
+                                </div>
+                                <div class="flex items-center gap-4 mt-4 lg:mt-0">
+                                    <div class="flex bg-gray-100 dark:bg-gray-700 rounded-2xl p-2">
+                                        <button id="view-grid" class="p-3 rounded-xl bg-white dark:bg-gray-600 shadow-sm transition-all duration-300">
+                                            <i class="fas fa-th-large"></i>
+                                        </button>
+                                        <button id="view-list" class="p-3 rounded-xl text-gray-500 dark:text-gray-400 transition-all duration-300">
+                                            <i class="fas fa-list"></i>
+                                        </button>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button id="prev-week" class="p-4 rounded-2xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors hover-lift">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button id="current-week" class="px-6 py-4 rounded-2xl bg-gradient-to-r from-culinary-500 to-culinary-600 text-white font-medium shadow-lg hover-lift hover:shadow-xl transition-all duration-300">
+                                            Aujourd'hui
+                                        </button>
+                                        <button id="next-week" class="p-4 rounded-2xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors hover-lift">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Navigation par Jour Améliorée -->
+                            <div class="flex gap-2 mb-8 overflow-x-auto pb-4 scrollbar-thin">
+                                {% for jour, menu in menus_semaine.items %}
+                                <button class="menu-day-tab flex-shrink-0 px-6 py-4 rounded-2xl text-base font-medium transition-all duration-300 hover-lift {% if menu.est_aujourdhui %}menu-day-active{% else %}bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300{% endif %} min-w-[120px]">
+                                    <div class="text-center">
+                                        <div class="font-semibold">{{ jour|slice:":3" }}</div>
+                                        <div class="text-sm opacity-80">{{ menu.date|date:"d/m" }}</div>
+                                    </div>
+                                </button>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Contenu des Jours avec Loading States -->
+                            <div id="menu-content" class="grid-view">
+                                {% for jour, menu in menus_semaine.items %}
+                                <div class="menu-day-content {% if not menu.est_aujourdhui %}hidden{% endif %} space-y-6" data-day="{{ jour }}">
+                                    <div class="flex items-center justify-between mb-6">
+                                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">{{ jour|title }} • {{ menu.date|date:"d F Y" }}</h3>
+                                        <span class="px-4 py-2 rounded-full text-sm font-medium {% if menu.est_passe %}bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300{% elif menu.est_aujourdhui %}bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400{% else %}bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400{% endif %}">
+                                            {% if menu.est_passe %}⌛ Passé{% elif menu.est_aujourdhui %}🎯 Aujourd'hui{% else %}⏳ À venir{% endif %}
+                                        </span>
+                                    </div>
+
+                                    {% for plat in menu.plats %}
+                                    <div class="plat-card rounded-3xl p-8 hover-lift group day-highlight">
+                                        <div class="flex justify-between items-start mb-4">
+                                            <h4 class="font-bold text-xl text-gray-900 dark:text-white group-hover:text-culinary-600 dark:group-hover:text-culinary-400 transition-colors duration-300">{{ plat.nom }}</h4>
+                                            <div class="flex gap-2">
+                                                {% if plat.vegetarien %}
+                                                <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1" title="Végétarien">
+                                                    🌱 Végé
+                                                </span>
+                                                {% endif %}
+                                                {% if plat.allergenes %}
+                                                <span class="bg-red-100 text-red-800 text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1" title="Allergènes: {{ plat.allergenes }}">
+                                                    ⚠️ Allergènes
+                                                </span>
+                                                {% endif %}
+                                                {% if plat.populaire %}
+                                                <span class="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full font-medium pulse-glow flex items-center gap-1" title="Plat populaire">
+                                                    🔥 Populaire
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <p class="text-gray-600 dark:text-gray-300 text-base mb-4 leading-relaxed">{{ plat.description }}</p>
+                                        
+                                        <!-- Informations Nutritionnelles Avancées -->
+                                        <div class="grid grid-cols-3 gap-4 mb-6">
+                                            <div class="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                                                <div class="text-lg font-bold text-gray-900 dark:text-white">{{ plat.calories }}</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">Calories</div>
+                                            </div>
+                                            <div class="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                                                <div class="text-lg font-bold text-gray-900 dark:text-white">{{ plat.proteines }}g</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">Protéines</div>
+                                            </div>
+                                            <div class="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                                                <div class="text-lg font-bold text-gray-900 dark:text-white">{{ plat.glucides }}g</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">Glucides</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center gap-4">
+                                                <span class="text-3xl font-bold text-green-600 dark:text-green-400">{{ plat.prix }}€</span>
+                                                {% if plat.note_moyenne %}
+                                                <div class="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-2xl">
+                                                    <i class="fas fa-star text-yellow-400"></i>
+                                                    <span class="font-semibold">{{ plat.note_moyenne }}/5</span>
+                                                    <span class="text-xs text-gray-500">({{ plat.nombre_avis }})</span>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            {% if menu.est_futur or menu.est_aujourdhui %}
+                                            <button class="commander-btn bg-gradient-to-r from-culinary-500 to-culinary-600 text-white px-8 py-4 rounded-2xl font-semibold hover:from-culinary-600 hover:to-culinary-700 transition-all duration-300 shadow-lg hover-lift pulse-glow command-animation"
+                                                    data-plat-id="{{ plat.id }}" 
+                                                    data-date="{{ menu.date|date:'Y-m-d' }}"
+                                                    data-plat-nom="{{ plat.nom }}">
+                                                <i class="fas fa-plus mr-3"></i>Commander
+                                            </button>
+                                            {% else %}
+                                            <span class="text-gray-400 text-sm font-medium px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-2xl">
+                                                ⌛ Commande fermée
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Commandes Récentes avec États -->
+                    <div class="bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-2xl glass-effect">
+                        <div class="p-8">
+                            <div class="flex justify-between items-center mb-8">
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">📋 Historique des Commandes</h3>
+                                <a href="{% url 'historique_commandes' %}" class="text-culinary-500 hover:text-culinary-700 text-base font-semibold flex items-center gap-2 hover-lift">
+                                    Voir tout <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                            
+                            {% if commandes_recentes %}
+                            <div class="space-y-4">
+                                {% for commande in commandes_recentes %}
+                                <div class="flex items-center justify-between p-6 bg-gray-50/50 dark:bg-gray-700/50 rounded-2xl border border-gray-200 dark:border-gray-600 hover-lift transition-all duration-300 group">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-16 h-16 bg-gradient-to-r from-{{ commande.couleur_statut }}-100 to-{{ commande.couleur_statut }}-200 rounded-2xl flex items-center justify-center dark:from-{{ commande.couleur_statut }}-900 dark:to-{{ commande.couleur_statut }}-800 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                            <i class="fas fa-{{ commande.icone_statut }} text-{{ commande.couleur_statut }}-600 dark:text-{{ commande.couleur_statut }}-400 text-2xl"></i>
+                                        </div>
+                                        <div>
+                                            <span class="font-bold text-gray-900 dark:text-white text-lg">{{ commande.plat.nom }}</span>
+                                            <p class="text-gray-600 dark:text-gray-300">
+                                                {{ commande.date|date:"d/m/Y" }} • {{ commande.get_statut_display }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        {% if commande.statut == 'livree' and not commande.avis_donne %}
+                                        <button class="donner-avis-btn bg-gradient-to-r from-culinary-500 to-culinary-600 text-white px-6 py-3 rounded-2xl font-medium hover:from-culinary-600 hover:to-culinary-700 transition-all duration-300 shadow-sm hover-lift"
+                                                data-commande-id="{{ commande.id }}" 
+                                                data-plat-nom="{{ commande.plat.nom }}">
+                                            <i class="fas fa-star mr-2"></i>Noter
+                                        </button>
+                                        {% elif commande.avis_donne %}
+                                        <span class="text-green-600 font-semibold flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 rounded-2xl">
+                                            <i class="fas fa-check-circle"></i> Avis donné
+                                        </span>
+                                        {% endif %}
+                                        <span class="text-xl font-bold text-green-600 dark:text-green-400">{{ commande.plat.prix }}€</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-16">
+                                <i class="fas fa-shopping-basket text-gray-300 text-6xl mb-4"></i>
+                                <p class="text-gray-500 dark:text-gray-400 text-xl mb-3">Aucune commande récente</p>
+                                <p class="text-gray-400 mb-6">Vos commandes apparaîtront ici</p>
+                                <button class="bg-gradient-to-r from-culinary-500 to-culinary-600 text-white px-8 py-4 rounded-2xl font-semibold hover:from-culinary-600 hover:to-culinary-700 transition-all duration-300 shadow-lg hover-lift">
+                                    Explorer le menu
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Colonne Droite - Statistiques et Profil -->
+                <div class="space-y-8">
+                    <!-- Carte Statistiques Personnelles -->
+                    <div class="bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-2xl glass-effect p-8">
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">📊 Mes Statistiques</h3>
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-culinary-50 to-amber-50 dark:from-culinary-900/20 dark:to-amber-900/20 rounded-2xl">
+                                <div>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Commandes ce mois</p>
+                                    <p class="text-3xl font-bold text-gray-900 dark:text-white">--</p>
+                                </div>
+                                <i class="fas fa-shopping-bag text-culinary-500 text-2xl"></i>
+                            </div>
+                           
+                            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl">
+                                <div>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Plats favoris</p>
+                                    <p class="text-3xl font-bold text-gray-900 dark:text-white">--</p>
+                                </div>
+                                <i class="fas fa-heart text-blue-500 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+
+                    <!-- Carte Récompenses -->
+                    <div class="bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl shadow-2xl p-8 text-white">
+                        <h3 class="text-2xl font-bold mb-4">🏆 Mes Avis</h3>
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <p class="text-amber-100">Niveau Actuel</p>
+                                <p class="text-3xl font-bold">Gourmet</p>
+                            </div>
+                            <div class="text-4xl">👨‍🍳</div>
+                        </div>
+                        <div class="bg-white/20 rounded-2xl p-4 backdrop-blur-sm">
+                            <div class="flex justify-between text-sm mb-2">
+                                <span>Prochain niveau</span>
+                                <span>00%</span>
+                            </div>
+                            <div class="w-full bg-white/30 rounded-full h-2">
+                                <div class="bg-white h-2 rounded-full" style="width: 00%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Commande -->
+    <div id="commande-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">🛒 Confirmer la commande</h3>
+                <button id="close-modal" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <p class="mb-4 text-gray-600 dark:text-gray-300">Vous êtes sur le point de commander :</p>
+            <div id="modal-plat-nom" class="text-lg font-semibold text-gray-900 dark:text-white mb-6"></div>
+            <div class="flex justify-end gap-4">
+                <button id="cancel-command" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-2xl font-medium hover-lift transition-all duration-300">
+                    Annuler
+                </button>
+                               <button id="confirm-command" class="px-6 py-3 bg-culinary-500 text-white rounded-2xl font-medium hover:from-culinary-600 hover:to-culinary-700 transition-all duration-300 shadow-lg hover-lift">
+                    Confirmer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Gestion modal
+        const commandeButtons = document.querySelectorAll('.commander-btn');
+        const modal = document.getElementById('commande-modal');
+        const closeModal = document.getElementById('close-modal');
+        const cancelCommand = document.getElementById('cancel-command');
+        const modalPlatNom = document.getElementById('modal-plat-nom');
+        let currentPlatId = null;
+        let currentPlatDate = null;
+
+        commandeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentPlatId = btn.dataset.platId;
+                currentPlatDate = btn.dataset.date;
+                modalPlatNom.textContent = btn.dataset.platNom;
+                modal.style.display = 'flex';
+            });
+        });
+
+        closeModal.addEventListener('click', () => modal.style.display = 'none');
+        cancelCommand.addEventListener('click', () => modal.style.display = 'none');
+
+        // Confirmer commande
+        document.getElementById('confirm-command').addEventListener('click', () => {
+            console.log('Commande confirmée', currentPlatId, currentPlatDate);
+            modal.style.display = 'none';
+            // Ici tu peux ajouter un fetch() pour appeler ton endpoint Django et enregistrer la commande
+        });
+
+        // Navigation entre les jours
+        const dayTabs = document.querySelectorAll('.menu-day-tab');
+        const dayContents = document.querySelectorAll('.menu-day-content');
+
+        dayTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const day = tab.textContent.trim().slice(0,3).toLowerCase();
+                dayContents.forEach(content => content.classList.add('hidden'));
+                document.querySelector(`.menu-day-content[data-day="${day}"]`).classList.remove('hidden');
+                dayTabs.forEach(t => t.classList.remove('menu-day-active'));
+                tab.classList.add('menu-day-active');
+            });
+        });
+
+        // Basculer vue grid/list
+        const viewGrid = document.getElementById('view-grid');
+        const viewList = document.getElementById('view-list');
+        const menuContent = document.getElementById('menu-content');
+
+        viewGrid.addEventListener('click', () => {
+            menuContent.classList.remove('list-view');
+            menuContent.classList.add('grid-view');
+        });
+
+        viewList.addEventListener('click', () => {
+            menuContent.classList.remove('grid-view');
+            menuContent.classList.add('list-view');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer un compte - SAH Analytics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --accent: #4cc9f0;
+            --success: #4ade80;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --text: #2b2d42;
+            --text-light: #8d99ae;
+            --background: #ffffff;
+            --card-bg: #f8f9fa;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+            --radius: 12px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            padding: 20px 0;
+            margin-bottom: 40px;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 28px;
+        }
+        
+        .brand h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        
+        .brand p {
+            font-size: 16px;
+            color: var(--text-light);
+            font-style: italic;
+        }
+        
+        .register-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 70vh;
+        }
+        
+        .register-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .register-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .register-header h2 {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+        
+        .register-header p {
+            color: var(--text-light);
+            font-size: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text);
+            font-size: 14px;
+        }
+        
+        .input-container {
+            position: relative;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+        
+        .password-strength {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .password-strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s, background 0.3s;
+        }
+        
+        .password-weak { background: var(--error); width: 33%; }
+        .password-medium { background: var(--warning); width: 66%; }
+        .password-strong { background: var(--success); width: 100%; }
+        
+        .terms-group {
+            display: flex;
+            align-items: flex-start;
+            margin: 25px 0;
+        }
+        
+        .terms-group input {
+            margin-right: 10px;
+            margin-top: 3px;
+        }
+        
+        .terms-group label {
+            font-weight: normal;
+            font-size: 14px;
+        }
+        
+        .terms-group a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .register-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .login-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        footer {
+            margin-top: 50px;
+            padding: 20px 0;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+            border-top: 1px solid #eaeaea;
+        }
+        
+        .error-message {
+            color: var(--error);
+            font-size: 12px;
+            margin-top: 5px;
+            background-color: rgba(239, 68, 68, 0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid var(--error);
+        }
+        
+        .success-message {
+            color: var(--success);
+            font-size: 12px;
+            margin-top: 5px;
+            background-color: rgba(74, 222, 128, 0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid var(--success);
+        }
+        
+        .redirect-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            flex-direction: column;
+        }
+        
+        .redirect-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(67, 97, 238, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        .redirect-message {
+            font-size: 18px;
+            color: var(--text);
+            font-weight: 500;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-field {
+            border-color: var(--error) !important;
+        }
+        
+        @media (max-width: 768px) {
+            .register-card {
+                padding: 30px 20px;
+                margin: 0 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <div class="logo">SAH</div>
+                <div class="brand">
+                    <h1>SAH Analytics</h1>
+                    <p>Manger mieux pour performer plus.</p>
+                </div>
+            </div>
+        </header>
+        
+        <section class="register-section">
+            <div class="register-card">
+                <div class="register-header">
+                    <h2>Créer un compte</h2>
+                    <p>Rejoignez la communauté SAH Analytics</p>
+                </div>
+                
+                <!-- Messages Django -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="{% if message.tags == 'error' %}error-message{% else %}success-message{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Erreurs non-field du formulaire -->
+                {% if form.non_field_errors %}
+                <div class="error-message">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <form id="registerForm" method="POST" action="{% url 'register' %}">
+                    {% csrf_token %}
+                    
+                    <!-- Champ Prénom -->
+                    <div class="form-group">
+                        <label for="id_prenom">Prénom</label>
+                        <input type="text" id="id_prenom" name="prenom" 
+                               value="{{ form.prenom.value|default:'' }}" 
+                               required
+                               class="{% if form.prenom.errors %}error-field{% endif %}">
+                        {% for error in form.prenom.errors %}
+                        <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Champ Nom -->
+                    <div class="form-group">
+                        <label for="id_nom">Nom</label>
+                        <input type="text" id="id_nom" name="nom" 
+                               value="{{ form.nom.value|default:'' }}" 
+                               required
+                               class="{% if form.nom.errors %}error-field{% endif %}">
+                        {% for error in form.nom.errors %}
+                        <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Champ Email -->
+                    <div class="form-group">
+                        <label for="id_email">Adresse e-mail Professionnel</label>
+                        <input type="email" id="id_email" name="email" 
+                               value="{{ form.email.value|default:'' }}" 
+                               required
+                               class="{% if form.email.errors %}error-field{% endif %}">
+                        {% for error in form.email.errors %}
+                        <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Champ Site -->
+                    <div class="form-group">
+                        <label for="id_site">Site</label>
+                        <select id="id_site" name="site" class="{% if form.site.errors %}error-field{% endif %}">
+                            <option value="">Sélectionnez votre site</option>
+                            {% for value, label in form.site.field.choices %}
+                                {% if value %}
+                                    <option value="{{ value }}" {% if form.site.value == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        {% for error in form.site.errors %}
+                        <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_departement">ROLE</label>
+                        <select id="id_departement" name="role" class="{% if form.role.errors %}error-field{% endif %}">
+                            <option value="">Sélectionnez votre Role</option>
+                            {% for value, label in form.role.field.choices %}
+                                {% if value %}
+                                    <option value="{{ value }}" {% if form.role.value == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        {% for error in form.departement.errors %}
+                        <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <!-- Champ Département -->
+                    <div class="form-group">
+                        <label for="id_departement">Département</label>
+                        <select id="id_departement" name="departement" class="{% if form.departement.errors %}error-field{% endif %}">
+                            <option value="">Sélectionnez votre département</option>
+                            {% for value, label in form.departement.field.choices %}
+                                {% if value %}
+                                    <option value="{{ value }}" {% if form.departement.value == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        {% for error in form.departement.errors %}
+                        <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Champ Mot de passe 1 -->
+                    <div class="form-group">
+                        <label for="id_password1">Mot de passe</label>
+                        <input type="password" id="id_password1" name="password1" 
+                               required
+                               class="{% if form.password1.errors %}error-field{% endif %}">
+                        <div class="password-strength">
+                            <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                        </div>
+                        {% for error in form.password1.errors %}
+                        <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Champ Mot de passe 2 -->
+                    <div class="form-group">
+                        <label for="id_password2">Confirmer le mot de passe</label>
+                        <input type="password" id="id_password2" name="password2" 
+                               required
+                               class="{% if form.password2.errors %}error-field{% endif %}">
+                        {% for error in form.password2.errors %}
+                        <div class="error-message">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Champ Conditions -->
+                    <div class="terms-group">
+                        <input type="checkbox" id="id_terms" name="terms" required>
+                        <label for="id_terms">
+                            J'accepte les <a href="#">conditions d'utilisation</a> et la <a href="#">politique de confidentialité</a>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="register-btn">Créer mon compte</button>
+                    
+                    <div class="login-link">
+                        <p>Déjà inscrit ? <a href="{% url 'login' %}">Se connecter</a></p>
+                    </div>
+                </form>
+            </div>
+        </section>
+        
+        <footer>
+            <p>&copy; 2025 SAH Analytics. Tous droits réservés.</p>
+        </footer>
+    </div>
+
+    <!-- Overlay de redirection -->
+    <div class="redirect-overlay" id="redirectOverlay">
+        <div class="redirect-spinner"></div>
+        <div class="redirect-message">Inscription réussie, redirection vers votre tableau de bord...</div>
+    </div>
+
+    <script>
+        // Validation en temps réel du mot de passe
+        const password1Field = document.getElementById('id_password1');
+        const password2Field = document.getElementById('id_password2');
+        const emailField = document.getElementById('id_email');
+        
+        if (password1Field) {
+            password1Field.addEventListener('input', function() {
+                const password = this.value;
+                const strengthBar = document.getElementById('passwordStrengthBar');
+                let strength = 0;
+                
+                if (password.length >= 8) strength += 25;
+                if (/[A-Z]/.test(password)) strength += 25;
+                if (/[0-9]/.test(password)) strength += 25;
+                if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+                
+                strengthBar.className = 'password-strength-bar';
+                
+                if (strength < 40) {
+                    strengthBar.classList.add('password-weak');
+                } else if (strength < 70) {
+                    strengthBar.classList.add('password-medium');
+                } else {
+                    strengthBar.classList.add('password-strong');
+                }
+            });
+        }
+        
+        if (password2Field) {
+            password2Field.addEventListener('input', function() {
+                const password1 = document.getElementById('id_password1').value;
+                const password2 = this.value;
+                
+                if (password2 && password1 !== password2) {
+                    this.classList.add('error-field');
+                } else {
+                    this.classList.remove('error-field');
+                }
+            });
+        }
+        
+        if (emailField) {
+            emailField.addEventListener('blur', function() {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (this.value && !emailRegex.test(this.value)) {
+                    this.classList.add('error-field');
+                } else {
+                    this.classList.remove('error-field');
+                }
+            });
+        }
+        
+        // Gestion de la soumission du formulaire
+        const form = document.getElementById('registerForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const terms = document.getElementById('id_terms');
+                if (terms && !terms.checked) {
+                    e.preventDefault();
+                    alert('Veuillez accepter les conditions d\'utilisation');
+                    return;
+                }
+                
+                // Afficher l'overlay seulement si le formulaire est valide
+                let isValid = true;
+                const requiredFields = form.querySelectorAll('input[required], select[required]');
+                
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        isValid = false;
+                        field.classList.add('error-field');
+                    }
+                });
+                
+                if (isValid) {
+                    document.getElementById('redirectOverlay').style.display = 'flex';
+                }
+            });
+        }
+        
+        // Cacher l'overlay si erreurs après chargement
+        window.addEventListener('load', function() {
+            if (document.querySelector('.error-message')) {
+                document.getElementById('redirectOverlay').style.display = 'none';
+            }
+        });
+        
+        // Validation des champs requis en temps réel
+        const requiredFields = document.querySelectorAll('input[required], select[required]');
+        requiredFields.forEach(field => {
+            field.addEventListener('blur', function() {
+                if (!this.value.trim()) {
+                    this.classList.add('error-field');
+                } else {
+                    this.classList.remove('error-field');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
