@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes Commandes - SAH Analytics{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shopping-cart me-2"></i>Mes Commandes
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Statistiques rapides -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h5 class="text-primary">{{ page_obj.paginator.count }}</h5>
+                                <small>Total de commandes</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h5 class="text-warning">{{ commandes_en_attente }}</h5>
+                                <small>En attente</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h5 class="text-success">{{ commandes_confirmees }}</h5>
+                                <small>Confirmées</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h5 class="text-info">{{ page_obj.paginator.count|sub:commandes_en_attente|sub:commandes_confirmees }}</h5>
+                                <small>Autres statuts</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Liste des commandes -->
+                    {% if page_obj %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Menu</th>
+                                        <th>Plat</th>
+                                        <th>Date</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for commande in page_obj %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ commande.menu.titre }}</strong>
+                                                <br><small class="text-muted">{{ commande.menu.date|date:"d/m/Y" }} - {{ commande.menu.site }}</small>
+                                            </td>
+                                            <td>
+                                                <strong>{{ commande.plat.nom }}</strong>
+                                                <br><small class="text-muted">{{ commande.plat.description|truncatewords:5 }}</small>
+                                                {% if commande.notes_speciales %}
+                                                    <br><small class="text-info"><i class="fas fa-sticky-note me-1"></i>{{ commande.notes_speciales }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ commande.created_at|date:"d/m/Y H:i" }}</small>
+                                                {% if commande.is_updated %}
+                                                    <br><small class="text-info">Modifié le {{ commande.updated_at|date:"d/m/Y" }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if commande.statut == 'en_attente' %}
+                                                    <span class="badge bg-warning">En attente</span>
+                                                {% elif commande.statut == 'confirmee' %}
+                                                    <span class="badge bg-success">Confirmée</span>
+                                                {% elif commande.statut == 'prete' %}
+                                                    <span class="badge bg-info">Prête</span>
+                                                {% elif commande.statut == 'livree' %}
+                                                    <span class="badge bg-primary">Livrée</span>
+                                                {% elif commande.statut == 'annulee' %}
+                                                    <span class="badge bg-danger">Annulée</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ commande.get_statut_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    {% if commande.statut in 'en_attente,confirmee' and commande.menu.date_limite_commande > now %}
+                                                        <a href="{% url 'modifier_commande' commande.id %}" class="btn btn-outline-primary">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <a href="{% url 'annuler_commande' commande.id %}" class="btn btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir annuler cette commande ?')">
+                                                            <i class="fas fa-times"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    <button class="btn btn-outline-secondary" onclick="viewDetails({{ commande.id }})">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4">
+                                                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                                <p class="text-muted">Vous n'avez pas encore passé de commande.</p>
+                                                <a href="{% url 'menus_semaine' %}" class="btn btn-primary">Découvrir les menus</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if page_obj.has_other_pages %}
+                            <nav aria-label="Pagination des commandes">
+                                <ul class="pagination justify-content-center mt-4">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédent</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivant</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour détails -->
+<div class="modal fade" id="commandeDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Détails de la commande</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="commandeDetailsContent">
+                    <!-- Contenu chargé dynamiquement -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewDetails(commandeId) {
+    // Ici vous pouvez ajouter une requête AJAX pour charger les détails
+    // Pour l'instant, on affiche un message
+    document.getElementById('commandeDetailsContent').innerHTML = '<div class="text-center py-4"><i class="fas fa-search fa-2x text-muted mb-3"></i><p class="text-muted">Fonctionnalité de détails en développement</p><p class="small">Commande ID: ' + commandeId + '</p></div>';
+    new bootstrap.Modal(document.getElementById('commandeDetailsModal')).show();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'utilisateurs/dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Supprimer un Utilisateur - SAH Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Confirmer la Suppression</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h5><i class="icon fas fa-exclamation-triangle"></i> Attention !</h5>
+                        Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{{ user.prenom }} {{ user.nom }}</strong> ?
+                        Cette action est irréversible.
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Détails de l'utilisateur</h5>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-3">Nom complet :</dt>
+                                <dd class="col-sm-9">{{ user.prenom }} {{ user.nom }}</dd>
+                                
+                                <dt class="col-sm-3">Email :</dt>
+                                <dd class="col-sm-9">{{ user.email }}</dd>
+                                
+                                <dt class="col-sm-3">Rôle :</dt>
+                                <dd class="col-sm-9">{{ user.get_role_display }}</dd>
+                                
+                                <dt class="col-sm-3">Site :</dt>
+                                <dd class="col-sm-9">{{ user.get_site_display }}</dd>
+                                
+                                <dt class="col-sm-3">Département :</dt>
+                                <dd class="col-sm-9">{{ user.get_departement_display }}</dd>
+                                
+                                <dt class="col-sm-3">QID :</dt>
+                                <dd class="col-sm-9">{{ user.qid|default:"Non défini" }}</dd>
+                                
+                                <dt class="col-sm-3">Date de création :</dt>
+                                <dd class="col-sm-9">{{ user.created_at|date:"d/m/Y H:i" }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="mt-3">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Oui, supprimer cet utilisateur
+                        </button>
+                        <a href="{% url 'admin_users' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Annuler
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

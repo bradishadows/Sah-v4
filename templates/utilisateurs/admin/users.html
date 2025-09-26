@@ -1,0 +1,170 @@
+{% extends 'utilisateurs/dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Gestion des Utilisateurs - SAH Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Gestion des Utilisateurs</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'create_user' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Ajouter un utilisateur
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Formulaire de recherche -->
+                    <form method="get" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <input type="text" name="search" class="form-control" placeholder="Rechercher..." value="{{ search_form.search.value|default:'' }}">
+                            </div>
+                            <div class="col-md-2">
+                                {{ search_form.role }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ search_form.site }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ search_form.departement }}
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary">Rechercher</button>
+                                <a href="{% url 'admin_users' %}" class="btn btn-secondary">Réinitialiser</a>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Tableau des utilisateurs -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nom</th>
+                                    <th>Prénom</th>
+                                    <th>Email</th>
+                                    <th>Rôle</th>
+                                    <th>Site</th>
+                                    <th>Département</th>
+                                    <th>QID</th>
+                                    <th>Date de création</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in page_obj %}
+                                <tr>
+                                    <td>{{ user.id }}</td>
+                                    <td>{{ user.nom }}</td>
+                                    <td>{{ user.prenom }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        <span class="badge badge-{% if user.role == 'admin' %}danger{% elif user.role == 'prestataire' %}warning{% elif user.role == 'secretaire' %}info{% else %}success{% endif %}">
+                                            {{ user.get_role_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ user.get_site_display }}</td>
+                                    <td>{{ user.get_departement_display }}</td>
+                                    <td>{{ user.qid|default:"-" }}</td>
+                                    <td>{{ user.created_at|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'update_user' user.id %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i> Modifier
+                                        </a>
+                                        <a href="{% url 'delete_user' user.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
+                                            <i class="fas fa-trash"></i> Supprimer
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center">Aucun utilisateur trouvé.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="Pagination des utilisateurs">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.site %}&site={{ request.GET.site }}{% endif %}{% if request.GET.departement %}&departement={{ request.GET.departement }}{% endif %}">Première</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.site %}&site={{ request.GET.site }}{% endif %}{% if request.GET.departement %}&departement={{ request.GET.departement }}{% endif %}">Précédente</a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.site %}&site={{ request.GET.site }}{% endif %}{% if request.GET.departement %}&departement={{ request.GET.departement }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.site %}&site={{ request.GET.site }}{% endif %}{% if request.GET.departement %}&departement={{ request.GET.departement }}{% endif %}">Suivante</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.site %}&site={{ request.GET.site }}{% endif %}{% if request.GET.departement %}&departement={{ request.GET.departement }}{% endif %}">Dernière</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+
+                    <!-- Statistiques rapides -->
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="small-box bg-info">
+                                <div class="inner">
+                                    <h3>{{ page_obj.paginator.count }}</h3>
+                                    <p>Total Utilisateurs</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small-box bg-success">
+                                <div class="inner">
+                                    <h3>{{ page_obj.paginator.count|filter_role:"collaborateur" }}</h3>
+                                    <p>Collaborateurs</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small-box bg-warning">
+                                <div class="inner">
+                                    <h3>{{ page_obj.paginator.count|filter_role:"prestataire" }}</h3>
+                                    <p>Prestataires</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="small-box bg-danger">
+                                <div class="inner">
+                                    <h3>{{ page_obj.paginator.count|filter_role:"admin" }}</h3>
+                                    <p>Admins</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

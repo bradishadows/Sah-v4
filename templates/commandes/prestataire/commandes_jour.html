@@ -1,0 +1,250 @@
+{% extends 'utilisateurs/dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Commandes du Jour - Prestataire{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-utensils me-2 text-primary"></i>Commandes du {{ date_cible|date:"l d/m/Y" }}
+                </h2>
+                <div class="d-flex gap-2">
+                    <a href="?date={{ date_cible|date:'Y-m-d'|add:'-1' }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-chevron-left"></i> Jour précédent
+                    </a>
+                    <a href="?date={{ date_cible|date:'Y-m-d'|add:'1' }}" class="btn btn-outline-secondary">
+                        Jour suivant <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sélecteur de site -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">Site</label>
+                            <select name="site" class="form-select" onchange="this.form.submit()">
+                                {% for site in sites %}
+                                    <option value="{{ site }}" {% if site_selected == site %}selected{% endif %}>{{ site }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" name="date" class="form-control" value="{{ date_cible|date:'Y-m-d' }}" onchange="this.form.submit()">
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="text-primary">{{ total_commandes }}</h5>
+                            <small>Total de commandes</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="text-success">{{ commandes|length }}</h5>
+                            <small>À préparer</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="text-info">{{ consolidation_plats|length }}</h5>
+                            <small>Plats différents</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consolidation par plat -->
+            {% if consolidation_plats %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-list-check me-2"></i>Consolidation par plat
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            {% for plat_nom, data in consolidation_plats.items %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card h-100 border-0 shadow-sm">
+                                        <div class="card-body d-flex flex-column">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <img src="{% if data.plat.image %}{{ data.plat.image.url }}{% else %}{% static 'images/plat-default.jpg' %}{% endif %}" 
+                                                     alt="{{ data.plat.nom }}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                                <div>
+                                                    <h6 class="mb-1">{{ data.plat.nom }}</h6>
+                                                    <span class="badge bg-primary">{{ data.quantite }} portions</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <p class="text-muted small mb-2">{{ data.plat.description|truncatewords:10 }}</p>
+                                                {% if data.notes_speciales %}
+                                                    <div class="mb-2">
+                                                        <small class="text-warning fw-bold">Notes spéciales :</small>
+                                                        <ul class="mb-0 small">
+                                                            {% for note in data.notes_speciales %}
+                                                                <li>{{ note }}</li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="mt-auto">
+                                                <button class="btn btn-outline-success btn-sm w-100" onclick="marquerPrete('{{ plat_nom }}')">
+                                                    <i class="fas fa-check me-1"></i>Marquer comme prêt
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Liste détaillée des commandes -->
+            {% if commandes %}
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-clipboard-list me-2"></i>Liste détaillée des commandes
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Utilisateur</th>
+                                        <th>Plat</th>
+                                        <th>Statut</th>
+                                        <th>Notes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for commande in commandes %}
+                                        <tr>
+                                            <td>
+                                                {{ commande.utilisateur.prenom }} {{ commande.utilisateur.nom }}
+                                                <br><small class="text-muted">{{ commande.utilisateur.email }}</small>
+                                            </td>
+                                            <td>
+                                                <strong>{{ commande.plat.nom }}</strong>
+                                                <br><small class="text-muted">{{ commande.plat.description|truncatewords:5 }}</small>
+                                            </td>
+                                            <td>
+                                                {% if commande.statut == 'confirmee' %}
+                                                    <span class="badge bg-success">Confirmée</span>
+                                                {% elif commande.statut == 'prete' %}
+                                                    <span class="badge bg-info">Prête</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if commande.notes_speciales %}
+                                                    <small class="text-info">{{ commande.notes_speciales }}</small>
+                                                {% else %}
+                                                    <small class="text-muted">-</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    {% if commande.statut == 'confirmee' %}
+                                                        <button class="btn btn-outline-success" onclick="marquerPreteCommande({{ commande.id }})">
+                                                            <i class="fas fa-check"></i> Prêt
+                                                        </button>
+                                                        <button class="btn btn-outline-primary" onclick="marquerLivreCommande({{ commande.id }})">
+                                                            <i class="fas fa-truck"></i> Livré
+                                                        </button>
+                                                    {% elif commande.statut == 'prete' %}
+                                                        <button class="btn btn-outline-primary" onclick="marquerLivreCommande({{ commande.id }})">
+                                                            <i class="fas fa-truck"></i> Livré
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Aucune commande pour cette date</h5>
+                        <p class="text-muted">Il n'y a pas de commandes à préparer pour le {{ date_cible|date:"l d/m/Y" }} au site {{ site_selected }}.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function marquerPrete(platNom) {
+    if (confirm('Marquer toutes les commandes de "' + platNom + '" comme prêtes ?')) {
+        // Ici vous pouvez ajouter une requête AJAX pour marquer comme prêt
+        alert('Fonctionnalité en développement');
+    }
+}
+
+function marquerPreteCommande(commandeId) {
+    if (confirm('Marquer cette commande comme prête ?')) {
+        // AJAX request
+        fetch('/commandes/prestataire/marque-prete/' + commandeId + '/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        });
+    }
+}
+
+function marquerLivreCommande(commandeId) {
+    if (confirm('Marquer cette commande comme livrée ?')) {
+        // AJAX request
+        fetch('/commandes/prestataire/marque-livree/' + commandeId + '/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

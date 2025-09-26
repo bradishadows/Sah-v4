@@ -1,0 +1,131 @@
+rateur{% extends 'utilisateurs/dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Menus - Prestataire{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-utensils me-2 text-primary"></i>Dashboard Menus
+                </h2>
+                <a href="{% url 'consolidation_commandes' %}" class="btn btn-primary">
+                    <i class="fas fa-list me-1"></i>Consolidation
+                </a>
+            </div>
+
+            <!-- Statistiques par site -->
+            {% for site, data in consolidation_site.items %}
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-map-marker-alt me-2"></i>Site {{ site }}
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <h5 class="text-primary">{{ data.menus|length }}</h5>
+                                    <small>Menus cette semaine</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <h5 class="text-success">{{ data.total_commandes }}</h5>
+                                    <small>Total commandes</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <h5 class="text-info">{{ data.details_par_jour|length }}</h5>
+                                    <small>Jours avec menus</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Détails par jour -->
+                        {% for jour, plats in data.details_par_jour.items %}
+                            <div class="mb-3">
+                                <h6 class="text-primary">{{ jour|title }}</h6>
+                                {% if plats %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Plat</th>
+                                                    <th>Commandes</th>
+                                                    <th>Max</th>
+                                                    <th>Statut</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for plat in plats %}
+                                                    <tr>
+                                                        <td>{{ plat.plat.nom }}</td>
+                                                        <td>{{ plat.quantite_commandee }}</td>
+                                                        <td>{{ plat.quantite_max|default:"-" }}</td>
+                                                        <td>
+                                                            {% if plat.quantite_max and plat.quantite_commandee >= plat.quantite_max %}
+                                                                <span class="badge bg-danger">Complet</span>
+                                                            {% else %}
+                                                                <span class="badge bg-success">OK</span>
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted small">Aucun plat commandé pour ce jour.</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-tools me-2"></i>Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a href="{% url 'consolidation_commandes' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-list me-2"></i>Voir la consolidation
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-success w-100" onclick="genererRapport()">
+                                <i class="fas fa-file-pdf me-2"></i>Générer rapport
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-info w-100" onclick="exporterDonnees()">
+                                <i class="fas fa-download me-2"></i>Exporter données
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function genererRapport() {
+    alert('Fonctionnalité en développement');
+}
+
+function exporterDonnees() {
+    alert('Fonctionnalité en développement');
+}
+</script>
+{% endblock %}

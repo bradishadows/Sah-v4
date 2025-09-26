@@ -1,0 +1,246 @@
+{% extends 'utilisateurs/dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Modération des Avis - Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-tasks me-2 text-primary"></i>Modération des Avis
+                </h2>
+                <a href="{% url 'statistiques_avis' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-chart-bar me-1"></i>Statistiques
+                </a>
+            </div>
+
+            <!-- Filtres -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Statut</label>
+                            <select name="statut" class="form-select">
+                                <option value="en_attente" {% if statut_selected == 'en_attente' %}selected{% endif %}>En attente</option>
+                                <option value="approuves" {% if statut_selected == 'approuves' %}selected{% endif %}>Approuvés</option>
+                                <option value="rejetes" {% if statut_selected == 'rejetes' %}selected{% endif %}>Rejetés</option>
+                                <option value="tous">Tous</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Plat</label>
+                            <select name="plat_id" class="form-select">
+                                <option value="">Tous les plats</option>
+                                {% for plat in plats %}
+                                    <option value="{{ plat.id }}" {% if plat_selected == plat.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ plat.nom }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter me-1"></i>Filtrer
+                                </button>
+                                <a href="{% url 'moderation_avis' %}" class="btn btn-outline-secondary">Réinitialiser</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Statistiques rapides -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="text-primary">{{ stats_avis.total|default:0 }}</h5>
+                            <small>Total d'avis</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="text-success">{{ stats_avis.approuves|default:0 }}</h5>
+                            <small>Approuvés</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="text-warning">{{ stats_avis.en_attente|default:0 }}</h5>
+                            <small>En attente</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="text-danger">{{ stats_avis.rejetes|default:0 }}</h5>
+                            <small>Rejetés</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tableau des avis -->
+            {% if page_obj %}
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Liste des avis (Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }})</h6>
+                        <span class="badge bg-secondary">{{ page_obj.paginator.count }} avis au total</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Utilisateur</th>
+                                        <th>Plat</th>
+                                        <th>Note</th>
+                                        <th>Commentaire</th>
+                                        <th>Date</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for avis in page_obj %}
+                                        <tr>
+                                            <td><strong>#{{ avis.id }}</strong></td>
+                                            <td>
+                                                {% if avis.est_anonyme %}
+                                                    <span class="badge bg-secondary">Anonyme</span>
+                                                {% else %}
+                                                    {{ avis.utilisateur.prenom }} {{ avis.utilisateur.nom }}
+                                                {% endif %}
+                                                <br><small class="text-muted">{{ avis.utilisateur.role }}</small>
+                                            </td>
+                                            <td>
+                                                <strong>{{ avis.plat.nom }}</strong>
+                                                <br><small class="text-muted">{{ avis.plat.description|truncatewords:5 }}</small>
+                                            </td>
+                                            <td>
+                                                {% for i in avis.note|make_list %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% endfor %}
+                                                <small class="text-muted">({{ avis.note }}/5)</small>
+                                            </td>
+                                            <td>
+                                                {% if avis.commentaire %}
+                                                    {{ avis.commentaire|truncatewords:10 }}
+                                                {% else %}
+                                                    <span class="text-muted">Sans commentaire</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ avis.created_at|date:"d/m/Y H:i" }}</small>
+                                                {% if avis.is_updated %}
+                                                    <br><small class="text-info">Modifié</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if avis.est_approuve %}
+                                                    <span class="badge bg-success">Approuvé</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">En attente</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    {% if not avis.est_approuve %}
+                                                        <a href="{% url 'approuver_avis' avis.id %}" class="btn btn-outline-success">
+                                                            <i class="fas fa-check"></i> Approuver
+                                                        </a>
+                                                    {% endif %}
+                                                    <a href="{% url 'rejeter_avis' avis.id %}" class="btn btn-outline-danger">
+                                                        <i class="fas fa-times"></i> Rejeter
+                                                    </a>
+                                                    <button class="btn btn-outline-secondary" onclick="viewDetails({{ avis.id }})">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="8" class="text-center py-4">
+                                                <i class="fas fa-inbox fa-2x text-muted mb-3"></i>
+                                                <p class="text-muted">Aucun avis trouvé avec les filtres actuels.</p>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        {% if page_obj.has_other_pages %}
+                            <nav aria-label="Pagination">
+                                <ul class="pagination justify-content-center mb-0">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.statut %}&statut={{ request.GET.statut }}{% endif %}{% if request.GET.plat_id %}&plat_id={{ request.GET.plat_id }}{% endif %}">Précédent</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}{% if request.GET.statut %}&statut={{ request.GET.statut }}{% endif %}{% if request.GET.plat_id %}&plat_id={{ request.GET.plat_id }}{% endif %}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.statut %}&statut={{ request.GET.statut }}{% endif %}{% if request.GET.plat_id %}&plat_id={{ request.GET.plat_id }}{% endif %}">Suivant</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour détails -->
+<div class="modal fade" id="avisDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Détails de l'avis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="avisDetailsContent">
+                    <!-- Contenu chargé dynamiquement -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewDetails(avisId) {
+    // Ici vous pouvez ajouter une requête AJAX pour charger les détails
+    // Pour l'instant, on affiche un message
+    document.getElementById('avisDetailsContent').innerHTML = '<div class="text-center py-4"><i class="fas fa-search fa-2x text-muted mb-3"></i><p class="text-muted">Fonctionnalité de détails en développement</p><p class="small">Avis ID: ' + avisId + '</p></div>';
+    new bootstrap.Modal(document.getElementById('avisDetailsModal')).show();
+}
+</script>
+{% endblock %}

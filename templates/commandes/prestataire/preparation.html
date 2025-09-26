@@ -1,0 +1,178 @@
+{% extends 'utilisateurs/dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Préparation des Commandes - Prestataire{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-cog me-2 text-primary"></i>Préparation des commandes du {{ aujourdhui|date:"l d/m/Y" }}
+                </h2>
+                <a href="{% url 'commandes_prestataire' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-list me-1"></i>Voir les commandes
+                </a>
+            </div>
+
+            <!-- Statistiques générales -->
+            <div class="row mb-4">
+                {% for site, data in preparation_data.items %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Site {{ site }}
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <h5 class="text-primary">{{ data.total_commandes }}</h5>
+                                        <small>Total commandes</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <h5 class="text-info">{{ data.plats_quantites|length }}</h5>
+                                        <small>Plats différents</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Détails par site -->
+            {% for site, data in preparation_data.items %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-utensils me-2"></i>Détail de préparation - Site {{ site }}
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if data.plats_quantites %}
+                            <div class="row g-3">
+                                {% for plat_key, plat_data in data.plats_quantites.items %}
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <img src="{% if plat_data.plat.image %}{{ plat_data.plat.image.url }}{% else %}{% static 'images/plat-default.jpg' %}{% endif %}" 
+                                                         alt="{{ plat_data.plat.nom }}" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                                    <div>
+                                                        <h6 class="mb-1">{{ plat_data.plat.nom }}</h6>
+                                                        <small class="text-muted">{{ plat_data.plat.description|truncatewords:8 }}</small>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="row text-center mb-3">
+                                                    <div class="col-4">
+                                                        <div class="p-2 bg-light rounded">
+                                                            <strong class="text-primary">{{ plat_data.quantite }}</strong>
+                                                            <br><small>Total</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="p-2 bg-warning rounded">
+                                                            <strong class="text-dark">{{ plat_data.statut_confirmee }}</strong>
+                                                            <br><small>À préparer</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <div class="p-2 bg-success rounded">
+                                                            <strong class="text-white">{{ plat_data.statut_prete }}</strong>
+                                                            <br><small>Prêt</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="progress mb-2" style="height: 8px;">
+                                                    {% widthratio plat_data.statut_prete plat_data.quantite 100 as progress %}
+                                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress }}%" 
+                                                         aria-valuenow="{{ plat_data.statut_prete }}" aria-valuemin="0" aria-valuemax="{{ plat_data.quantite }}"></div>
+                                                </div>
+                                                <small class="text-muted">{{ plat_data.statut_prete }}/{{ plat_data.quantite }} portions prêtes</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-inbox fa-2x text-muted mb-3"></i>
+                                <p class="text-muted">Aucune commande à préparer pour ce site aujourd'hui.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- Actions globales -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-tools me-2"></i>Actions de préparation
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <button class="btn btn-success w-100" onclick="marquerToutPrete()">
+                                <i class="fas fa-check-double me-2"></i>Marquer tout comme prêt
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100" onclick="genererListeCourses()">
+                                <i class="fas fa-shopping-cart me-2"></i>Générer liste de courses
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-info w-100" onclick="imprimerPreparation()">
+                                <i class="fas fa-print me-2"></i>Imprimer la préparation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function marquerToutPrete() {
+    if (confirm('Marquer toutes les commandes comme prêtes ?')) {
+        // AJAX request to mark all as ready
+        alert('Fonctionnalité en développement');
+    }
+}
+
+function genererListeCourses() {
+    // Generate shopping list
+    alert('Fonctionnalité en développement');
+}
+
+function imprimerPreparation() {
+    window.print();
+}
+</script>
+
+<style>
+@media print {
+    .btn, .card-header .btn, nav, .d-flex {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        margin-bottom: 20px;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa !important;
+        border-bottom: 1px solid #000 !important;
+    }
+}
+</style>
+{% endblock %}

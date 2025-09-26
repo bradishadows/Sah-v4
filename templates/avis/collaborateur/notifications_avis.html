@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notifications Avis - SAH Analytics{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-bell me-2"></i>Notifications - Donnez votre avis
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Vous avez commandé récemment des plats. Partagez votre expérience pour aider vos collègues !
+                    </div>
+
+                    {% if plats_sans_avis %}
+                        <div class="row g-4">
+                            {% for plat in plats_sans_avis %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card h-100 border-0 shadow-sm hover-card">
+                                        <img src="{% if plat.plat.image %}{{ plat.plat.image.url }}{% else %}{% static 'images/plat-default.jpg' %}{% endif %}" 
+                                             class="card-img-top" alt="{{ plat.plat.nom }}" style="height: 200px; object-fit: cover;">
+                                        <div class="card-body d-flex flex-column">
+                                            <h6 class="card-title text-primary">{{ plat.plat.nom }}</h6>
+                                            <p class="card-text text-muted small">{{ plat.plat.description|truncatewords:10 }}</p>
+                                            <div class="mt-auto">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    Commandé le {{ plat.created_at|date:"d/m/Y" }}
+                                                </small>
+                                                <div class="mt-2">
+                                                    <a href="{% url 'donner_avis_commande' plat.id %}" class="btn btn-primary btn-sm">
+                                                        <i class="fas fa-star me-1"></i>Donner mon avis
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <a href="{% url 'mes_avis' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-list me-2"></i>Voir tous mes avis
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5 class="text-success">À jour !</h5>
+                            <p class="text-muted">Vous avez donné votre avis sur toutes vos commandes récentes.</p>
+                            <a href="{% url 'menus_semaine' %}" class="btn btn-primary">
+                                <i class="fas fa-utensils me-2"></i>Découvrir les menus
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+}
+</style>
+{% endblock %}

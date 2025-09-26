@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Donner un Avis - SAH Analytics{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-star me-2"></i>
+                        {% if avis_existant %}Modifier{% else %}Donner un{% endif %} Avis
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Information sur le plat -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <img src="{% if plat.image %}{{ plat.image.url }}{% else %}{% static 'images/plat-default.jpg' %}{% endif %}" 
+                                 alt="{{ plat.nom }}" class="img-fluid rounded" style="height: 200px; object-fit: cover;">
+                        </div>
+                        <div class="col-md-8">
+                            <h5 class="text-primary">{{ plat.nom }}</h5>
+                            <p class="text-muted">{{ plat.description|truncatewords:15 }}</p>
+                            {% if commande %}
+                                <small class="text-info">
+                                    <i class="fas fa-utensils me-1"></i>
+                                    Commande du {{ commande.created_at|date:"d/m/Y" }}
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Formulaire d'avis -->
+                    <form method="POST" id="avisForm">
+                        {% csrf_token %}
+                        
+                        <!-- Note avec étoiles -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Votre note (1-5 étoiles)</label>
+                            <div class="star-rating mb-3">
+                                {% for i in note_range %}
+                                    <input type="radio" id="star{{ i }}" name="note" value="{{ i }}"
+                                           class="star-rating-input" 
+                                           {% if avis_existant and avis_existant.note == i %}checked{% endif %}
+                                           required>
+                                    <label for="star{{ i }}" class="star-rating-label">
+                                        <i class="fas fa-star"></i>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted">Sélectionnez votre note en cliquant sur les étoiles</small>
+                        </div>
+
+                        <!-- Commentaire -->
+                        <div class="mb-4">
+                            <label for="commentaire" class="form-label fw-bold">Commentaire (optionnel)</label>
+                            <textarea name="commentaire" id="commentaire" rows="5" 
+                                      class="form-control" 
+                                      placeholder="Partagez votre expérience avec ce plat... (max 500 caractères)"
+                                      maxlength="500"
+                                      {% if avis_existant %}value="{{ avis_existant.commentaire }}"{% endif %}>
+                            </textarea>
+                            <div class="form-text">
+                                {% if avis_existant and avis_existant.commentaire %}
+                                    <small class="text-muted">{{ avis_existant.commentaire|length }}/500 caractères</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Anonymat -->
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" id="est_anonyme" name="est_anonyme"
+                                   {% if avis_existant and avis_existant.est_anonyme %}checked{% endif %}>
+                            <label class="form-check-label" for="est_anonyme">
+                                <i class="fas fa-user-secret me-1"></i>
+                                Publier de manière anonyme
+                            </label>
+                            <div class="form-text">
+                                Votre nom et prénom ne seront pas affichés publiquement.
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="d-flex gap-3 justify-content-between">
+                            <a href="{% if commande %}{% url 'historique_commandes' %}{% else %}{% url 'menus_semaine' %}{% endif %}" 
+                               class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Retour
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>
+                                {% if avis_existant %}Modifier l'avis{% else %}Envoyer l'avis{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+                <div class="mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.star-rating-input {
+    display: none;
+}
+
+.star-rating-label {
+    color: #ddd;
+    cursor: pointer;
+    font-size: 2rem;
+    transition: color 0.2s;
+    margin: 0 2px;
+}
+
+.star-rating-label:hover,
+.star-rating-label:hover ~ .star-rating-label,
+.star-rating-input:checked ~ .star-rating-label {
+    color: #ffd700;
+}
+
+.star-rating-label i {
+    transition: transform 0.2s;
+}
+
+.star-rating-label:hover i {
+    transform: scale(1.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('avisForm');
+    const commentaire = document.getElementById('commentaire');
+    
+    // Compteur de caractères
+    commentaire.addEventListener('input', function() {
+        const counter = document.querySelector('.form-text small');
+        if (counter) {
+            counter.textContent = this.value.length + '/500 caractères';
+        }
+    });
+    
+    // Validation du formulaire
+    form.addEventListener('submit', function(e) {
+        const note = document.querySelector('input[name="note"]:checked');
+        if (!note) {
+            e.preventDefault();
+            alert('Veuillez sélectionner une note avant d\'envoyer.');
+            return false;
+        }
+        
+        // Confirmation pour modification
+        {% if avis_existant %}
+        if (!confirm('Êtes-vous sûr de vouloir modifier cet avis ?')) {
+            e.preventDefault();
+            return false;
+        }
+        {% endif %}
+    });
+});
+</script>
+{% endblock %}

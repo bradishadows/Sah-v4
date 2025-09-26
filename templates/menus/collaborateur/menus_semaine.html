@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Menus de la Semaine - SAH Analytics{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-week me-2"></i>Menus de la Semaine
+                    </h4>
+                    <small class="d-block mt-1">Semaine du {{ dates_semaine.0|date:"d/m/Y" }} au {{ dates_semaine.4|date:"d/m/Y" }}</small>
+                </div>
+                <div class="card-body">
+                    <!-- Navigation par jour -->
+                    <div class="row mb-4">
+                        {% for date in dates_semaine %}
+                            <div class="col-md-2 col-sm-4 mb-2">
+                                <div class="text-center">
+                                    <div class="fw-bold">{{ date|date:"D d/m" }}</div>
+                                    <small class="text-muted">{{ date|date:"M" }}</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Menus par jour et site -->
+                    {% for date in dates_semaine %}
+                        <div class="mb-5">
+                            <h5 class="text-primary border-bottom pb-2">
+                                <i class="fas fa-calendar-day me-2"></i>{{ date|date:"l d/m/Y" }}
+                                {% if date == aujourdhui %}
+                                    <span class="badge bg-success ms-2">Aujourd'hui</span>
+                                {% endif %}
+                            </h5>
+                            
+                            <div class="row">
+                                {% for menu in menus_semaine %}
+                                    {% if menu.date == date %}
+                                        <div class="col-md-6 mb-4">
+                                            <div class="card h-100 {% if not menu.commandes_ouvertes %}border-warning{% endif %}">
+                                                <div class="card-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="mb-0">
+                                                        <i class="fas fa-map-marker-alt me-2"></i>{{ menu.site }}
+                                                    </h6>
+                                                    {% if menu.commandes_ouvertes %}
+                                                        <span class="badge bg-success">Commandes ouvertes</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning">Commandes fermées</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="card-body">
+                                                    {% if menu.image %}
+                                                        <img src="{{ menu.image.url }}" alt="{{ menu.titre }}" class="img-fluid rounded mb-3" style="height: 150px; object-fit: cover;">
+                                                    {% endif %}
+                                                    
+                                                    <h6 class="card-title">{{ menu.titre }}</h6>
+                                                    <p class="card-text text-muted small">{{ menu.description }}</p>
+                                                    
+                                                    <!-- Plats disponibles -->
+                                                    {% if menu.menuplat_set.all %}
+                                                        <div class="mb-3">
+                                                            <small class="text-muted fw-bold">Plats disponibles :</small>
+                                                            <ul class="list-unstyled small">
+                                                                {% for menu_plat in menu.menuplat_set.all %}
+                                                                    <li class="d-flex justify-content-between">
+                                                                        <span>{{ menu_plat.plat.nom }}</span>
+                                                                        <span class="text-primary">{{ menu_plat.prix|floatformat:0 }} FCFA</span>
+                                                                    </li>
+                                                                {% endfor %}
+                                                            </ul>
+                                                        </div>
+                                                    {% endif %}
+                                                    
+                                                    <!-- Informations temporelles -->
+                                                    <div class="row text-center small">
+                                                        <div class="col-6">
+                                                            <i class="fas fa-clock text-muted me-1"></i>
+                                                            <strong>Limite :</strong><br>
+                                                            {{ menu.date_limite_commande|date:"d/m H:i" }}
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <i class="fas fa-users text-muted me-1"></i>
+                                                            <strong>Commandes :</strong><br>
+                                                            {% widthratio menu.menuplat_set.all|length 1 1 as total_commandes %}
+                                                            {{ total_commandes }} plats
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-footer">
+                                                    {% if menu.commandes_ouvertes %}
+                                                        <a href="{% url 'commander_menu' menu.id %}" class="btn btn-primary btn-sm w-100">
+                                                            <i class="fas fa-shopping-cart me-1"></i>Commander
+                                                        </a>
+                                                    {% else %}
+                                                        <button class="btn btn-secondary btn-sm w-100" disabled>
+                                                            <i class="fas fa-lock me-1"></i>Commandes fermées
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% empty %}
+                                    <div class="col-12">
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-utensils fa-3x text-muted mb-3"></i>
+                                            <p class="text-muted">Aucun menu disponible pour cette journée.</p>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    <!-- Message si aucun menu -->
+                    {% if not menus_semaine %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
+                            <h5 class="text-muted">Aucun menu disponible cette semaine</h5>
+                            <p class="text-muted">Les menus de la semaine n'ont pas encore été publiés.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+                <div class="mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

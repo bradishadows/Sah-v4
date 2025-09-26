@@ -1,0 +1,143 @@
+{% extends 'utilisateurs/dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Suivi des Commandes - Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-chart-line me-2 text-primary"></i>Suivi des Commandes
+                </h2>
+                <a href="{% url 'dashboard_admin' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Retour dashboard
+                </a>
+            </div>
+
+            <!-- Statistiques générales -->
+            <div class="row mb-4">
+                {% for key, data in commandes_par_site_jour.items %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-map-marker-alt me-2"></i>{{ data.menu.site }} - {{ data.menu.get_jour_display }}
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <h5 class="text-primary">{{ data.plats|length }}</h5>
+                                        <small>Plats commandés</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <h5 class="text-success">{{ data.total_commandes }}</h5>
+                                        <small>Total portions</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Détails par site et jour -->
+            {% for key, data in commandes_par_site_jour.items %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-utensils me-2"></i>{{ data.menu.site }} - {{ data.menu.get_jour_display }} ({{ data.menu.date|date:"d/m/Y" }})
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if data.plats %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Plat</th>
+                                            <th>Prix</th>
+                                            <th>Quantité commandée</th>
+                                            <th>Quantité max</th>
+                                            <th>Statut</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for plat in data.plats %}
+                                            <tr>
+                                                <td>
+                                                    <strong>{{ plat.plat.nom }}</strong>
+                                                    <br><small class="text-muted">{{ plat.plat.description|truncatewords:5 }}</small>
+                                                </td>
+                                                <td>{{ plat.prix|floatformat:0 }} FCFA</td>
+                                                <td>
+                                                    <span class="badge bg-primary">{{ plat.quantite_commandee }}</span>
+                                                </td>
+                                                <td>
+                                                    {% if plat.quantite_max %}
+                                                        {{ plat.quantite_max }}
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if plat.quantite_max and plat.quantite_commandee >= plat.quantite_max %}
+                                                        <span class="badge bg-danger">Complet</span>
+                                                    {% elif plat.quantite_commandee > 0 %}
+                                                        <span class="badge bg-success">Disponible</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Aucune commande</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <strong>{{ plat.total|floatformat:0 }} FCFA</strong>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <th colspan="5" class="text-end">Total général :</th>
+                                            <th>{{ data.total_commandes }} portions</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-inbox fa-2x text-muted mb-3"></i>
+                                <p class="text-muted">Aucune commande pour ce menu.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- Résumé général -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Résumé de la semaine
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        {% for key, data in commandes_par_site_jour.items %}
+                            <div class="col-md-3 mb-3">
+                                <div class="p-3 bg-light rounded">
+                                    <h6>{{ data.menu.site }}</h6>
+                                    <div class="text-primary fw-bold">{{ data.total_commandes }} portions</div>
+                                    <small class="text-muted">{{ data.plats|length }} plats</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,209 @@
+{% extends 'utilisateurs/dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Consolidation des Commandes - Prestataire{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-list-check me-2 text-primary"></i>Consolidation des Commandes
+                </h2>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'dashboard_prestataire' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Retour dashboard
+                    </a>
+                    <button class="btn btn-outline-primary" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>Imprimer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtres -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Site</label>
+                            <select name="site" class="form-select" onchange="this.form.submit()">
+                                {% for site in sites %}
+                                    <option value="{{ site }}" {% if site_selected == site %}selected{% endif %}>{{ site }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date début</label>
+                            <input type="date" name="date_debut" class="form-control" value="{{ date_debut }}" onchange="this.form.submit()">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date fin</label>
+                            <input type="date" name="date_fin" class="form-control" value="{{ date_fin }}" onchange="this.form.submit()">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter me-1"></i>Filtrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Consolidation -->
+            {% if consolidation %}
+                {% for item in consolidation %}
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-calendar-day me-2"></i>{{ item.menu.date|date:"l d/m/Y" }} - {{ item.menu.site }}
+                            </h6>
+                            <span class="badge bg-primary">{{ item.total_commandes }} portions</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <strong>{{ item.menu.titre }}</strong>
+                                    {% if item.menu.description %}
+                                        <br><small class="text-muted">{{ item.menu.description }}</small>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <small class="text-muted">Limite de commande : {{ item.menu.date_limite_commande|date:"d/m/Y H:i" }}</small>
+                                </div>
+                            </div>
+
+                            {% if item.plats %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Plat</th>
+                                                <th>Description</th>
+                                                <th>Prix</th>
+                                                <th>Quantité commandée</th>
+                                                <th>Quantité max</th>
+                                                <th>Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for plat in item.plats %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ plat.plat.nom }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <small class="text-muted">{{ plat.plat.description|truncatewords:8 }}</small>
+                                                    </td>
+                                                    <td>{{ plat.prix|floatformat:0 }} FCFA</td>
+                                                    <td>
+                                                        <span class="badge bg-primary">{{ plat.quantite_commandee }}</span>
+                                                    </td>
+                                                    <td>
+                                                        {% if plat.quantite_max %}
+                                                            {{ plat.quantite_max }}
+                                                        {% else %}
+                                                            <span class="text-muted">-</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <strong>{{ plat.total|floatformat:0 }} FCFA</strong>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                        <tfoot class="table-light">
+                                            <tr>
+                                                <th colspan="3" class="text-end">Totaux :</th>
+                                                <th>{{ item.total_commandes }} portions</th>
+                                                <th>-</th>
+                                                <th>
+                                                    {% widthratio item.plats|length 1 1 as total_general %}
+                                                    {{ total_general }} FCFA
+                                                </th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-inbox fa-2x text-muted mb-3"></i>
+                                    <p class="text-muted">Aucune commande pour ce menu.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <!-- Résumé général -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>Résumé général
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <h5 class="text-primary">{{ consolidation|length }}</h5>
+                                    <small>Menus avec commandes</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <h5 class="text-success">
+                                        {% for item in consolidation %}
+                                            {% widthratio item.total_commandes 1 1 as total %}
+                                            {{ total }}
+                                        {% endfor %}
+                                    </h5>
+                                    <small>Total portions</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded">
+                                    <h5 class="text-info">
+                                        {% for item in consolidation %}
+                                            {% widthratio item.plats|length 1 1 as plats %}
+                                            {{ plats }}
+                                        {% endfor %}
+                                    </h5>
+                                    <small>Plats différents</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-search fa-4x text-muted mb-4"></i>
+                        <h5 class="text-muted">Aucune commande trouvée</h5>
+                        <p class="text-muted">Il n'y a pas de commandes pour les critères sélectionnés.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, nav, .d-flex {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        margin-bottom: 20px;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa !important;
+        border-bottom: 1px solid #000 !important;
+    }
+}
+</style>
+{% endblock %}

@@ -1,362 +1,45 @@
+{% extends "utilisateurs/dashboards/base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="fr" class="h-full">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}- Sah Analytics{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        'culinary': {
-                            50: '#fff7ed',
-                            100: '#ffedd5',
-                            200: '#fed7aa',
-                            300: '#fdba74',
-                            400: '#fb923c',
-                            500: '#f97316',
-                            600: '#ea580c',
-                            700: '#c2410c',
-                            800: '#9a3412',
-                            900: '#7c2d12',
-                        }
-                    },
-                    animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'pulse-glow': 'pulse-glow 2s ease-in-out infinite alternate',
-                        'fadeIn': 'fadeIn 0.3s ease',
-                        'modalSlideIn': 'modalSlideIn 0.3s ease forwards',
-                        'stagger': 'stagger 0.6s ease forwards',
-                        'commandPulse': 'commandPulse 0.6s ease',
-                        'loading': 'loading 1.5s infinite',
-                        'bounce-gentle': 'bounce-gentle 2s infinite',
+{% block title %}Tableau de Bord Collaborateur - Sah Analytics{% endblock %}
+
+{% block extra_js %}
+<script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                colors: {
+                    'culinary': {
+                        50: '#fff7ed',
+                        100: '#ffedd5',
+                        200: '#fed7aa',
+                        300: '#fdba74',
+                        400: '#fb923c',
+                        500: '#f97316',
+                        600: '#ea580c',
+                        700: '#c2410c',
+                        800: '#9a3412',
+                        900: '#7c2d12',
                     }
+                },
+                animation: {
+                    'float': 'float 6s ease-in-out infinite',
+                    'pulse-glow': 'pulse-glow 2s ease-in-out infinite alternate',
+                    'fadeIn': 'fadeIn 0.3s ease',
+                    'modalSlideIn': 'modalSlideIn 0.3s ease forwards',
+                    'stagger': 'stagger 0.6s ease forwards',
+                    'commandPulse': 'commandPulse 0.6s ease',
+                    'loading': 'loading 1.5s infinite',
+                    'bounce-gentle': 'bounce-gentle 2s infinite',
                 }
             }
         }
-    </script>
-    {% block extra_css %}
-    <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --culinary-gradient: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
-        }
+    }
+</script>
+{% endblock %}
 
-        .glass-effect {
-            backdrop-filter: blur(20px);
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .dark .glass-effect {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .plat-card {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-
-        .dark .plat-card {
-            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .plat-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 
-                0 25px 50px -12px rgba(0, 0, 0, 0.25),
-                0 0 0 1px rgba(251, 146, 60, 0.1);
-        }
-
-        .plat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transition: left 0.7s;
-        }
-
-        .plat-card:hover::before {
-            left: 100%;
-        }
-
-        .floating-element {
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            33% { transform: translateY(-10px) rotate(1deg); }
-            66% { transform: translateY(-5px) rotate(-1deg); }
-        }
-
-        .pulse-glow {
-            animation: pulse-glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes pulse-glow {
-            from { 
-                box-shadow: 0 0 20px rgba(251, 146, 60, 0.3);
-                transform: scale(1);
-            }
-            to { 
-                box-shadow: 0 0 30px rgba(251, 146, 60, 0.6);
-                transform: scale(1.05);
-            }
-        }
-
-        .nutrition-ring {
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
-        }
-
-        .menu-day-active {
-            background: var(--culinary-gradient);
-            color: white;
-            transform: scale(1.05);
-            box-shadow: 0 10px 25px rgba(251, 146, 60, 0.3);
-        }
-
-        .stagger-animation > * {
-            opacity: 0;
-            transform: translateY(30px);
-            animation: stagger 0.6s ease forwards;
-        }
-
-        @keyframes stagger {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .gradient-text {
-            background: var(--culinary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hover-lift {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .hover-lift:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-
-        .rating-stars {
-            display: flex;
-            gap: 2px;
-        }
-
-        .etoile {
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: #d1d5db;
-        }
-
-        .etoile.active {
-            color: #fbbf24;
-        }
-
-        .etoile:hover {
-            transform: scale(1.3);
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 32px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            transform: scale(0.9);
-            animation: modalSlideIn 0.3s ease forwards;
-        }
-
-        @keyframes modalSlideIn {
-            to {
-                transform: scale(1);
-            }
-        }
-
-        .dark .modal-content {
-            background: #1f2937;
-        }
-
-        .progress-ring {
-            width: 80px;
-            height: 80px;
-        }
-
-        .progress-ring-circle {
-            stroke-dasharray: 283;
-            stroke-dashoffset: 283;
-            transition: stroke-dashoffset 1s ease;
-        }
-
-        .command-animation {
-            animation: commandPulse 0.6s ease;
-        }
-
-        @keyframes commandPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .skeleton-loader {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-
-        .dark .skeleton-loader {
-            background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
-        }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        .scrollbar-thin {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-            background: rgba(156, 163, 175, 0.5);
-            border-radius: 3px;
-        }
-
-        .grid-view .plat-card {
-            display: block;
-        }
-
-        .list-view .plat-card {
-            display: flex;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .list-view .plat-card > * {
-            flex: 1;
-        }
-
-        .list-view .plat-card .nutrition-info {
-            display: none;
-        }
-
-        .stagger-delay-1 { animation-delay: 0.1s; }
-        .stagger-delay-2 { animation-delay: 0.2s; }
-        .stagger-delay-3 { animation-delay: 0.3s; }
-        .stagger-delay-4 { animation-delay: 0.4s; }
-
-        @keyframes bounce-gentle {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .culinary-badge {
-            background: var(--culinary-gradient);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .specialty-tag {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            z-index: 10;
-        }
-
-        .plat-image {
-            height: 200px;
-            background-size: cover;
-            background-position: center;
-            border-radius: 16px;
-            margin-bottom: 16px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .plat-image::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 60%;
-            background: linear-gradient(transparent, rgba(0,0,0,0.5));
-        }
-
-        .day-highlight {
-            border-left: 4px solid #fb923c;
-            background: rgba(251, 146, 60, 0.05);
-        }
-
-        .dark .day-highlight {
-            background: rgba(251, 146, 60, 0.1);
-        }
-    </style>
-    {% endblock %}
-</head>
-<body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-    
+{% block content %}
     <div class="min-h-screen bg-gradient-to-br from-blue-100 via-white to-blue-300 dark:from-blue-900 dark:via-gray-800 dark:to-blue-900 py-8">
 
         <!-- Background Elements Animés -->
@@ -422,7 +105,7 @@
                             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
                                 <div>
                                     <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">🍽️ Menu de la Semaine</h2>
-                                    <p class="text-gray-600 dark:text-gray-300 text-lg">Du 21 Septembre 2025au 26 Septembre 2025</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-lg">Du {{ semaine_debut|date:"d F Y" }} au {{ semaine_fin|date:"d F Y" }}</p>
                                 </div>
                                 <div class="flex items-center gap-4 mt-4 lg:mt-0">
                                     <div class="flex bg-gray-100 dark:bg-gray-700 rounded-2xl p-2">
@@ -609,17 +292,17 @@
                             <div class="flex items-center justify-between p-4 bg-gradient-to-r from-culinary-50 to-amber-50 dark:from-culinary-900/20 dark:to-amber-900/20 rounded-2xl">
                                 <div>
                                     <p class="text-gray-600 dark:text-gray-300 text-sm">Commandes ce mois</p>
-                                    <p class="text-3xl font-bold text-gray-900 dark:text-white">--</p>
+                                    <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.commandes_mois }}</p>
                                 </div>
                                 <i class="fas fa-shopping-bag text-culinary-500 text-2xl"></i>
                             </div>
-                           
+
                             <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl">
                                 <div>
-                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Plats favoris</p>
-                                    <p class="text-3xl font-bold text-gray-900 dark:text-white">--</p>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">Moyenne avis</p>
+                                    <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ stats.moyenne_avis }}/5</p>
                                 </div>
-                                <i class="fas fa-heart text-blue-500 text-2xl"></i>
+                                <i class="fas fa-star text-blue-500 text-2xl"></i>
                             </div>
                         </div>
                     </div>
@@ -673,7 +356,6 @@
         </div>
     </div>
 
-    <!-- Scripts -->
     <script>
         // Gestion modal
         const commandeButtons = document.querySelectorAll('.commander-btn');
@@ -732,5 +414,4 @@
             menuContent.classList.add('list-view');
         });
     </script>
-</body>
-</html>
+{% endblock %}

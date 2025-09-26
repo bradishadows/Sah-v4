@@ -97,12 +97,20 @@ class CustomUserCreationForm(UserCreationForm):
     )
     departement = forms.ChoiceField(
         choices=DEPARTEMENT_CHOICES,
-        initial='Autres',  
+        initial='Autres',
         widget=forms.Select(attrs={
             'class': 'form-control'
         })
     )
-    
+
+    terms = forms.BooleanField(
+        required=True,
+        label="J'accepte les conditions d'utilisation et la politique de confidentialité",
+        widget=forms.CheckboxInput(attrs={
+            'id': 'terms'
+        })
+    )
+
     class Meta:
         model = User
         fields = ('prenom', 'nom', 'email', 'role', 'qid', 'site', 'departement', 'password1', 'password2')

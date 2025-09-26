@@ -1,0 +1,225 @@
+{% extends 'utilisateurs/dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Menus - Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-tachometer-alt me-2 text-primary"></i>Dashboard Menus
+                </h2>
+                <a href="{% url 'gerer_menus_semaine' %}" class="btn btn-primary">
+                    <i class="fas fa-cog me-1"></i>Gérer les menus
+                </a>
+            </div>
+
+            <!-- Statistiques générales -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="text-primary">{{ menus_semaine|length }}</h5>
+                            <small>Menus cette semaine</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="text-success">{{ menus_publies }}</h5>
+                            <small>Menus publiés</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="text-warning">{{ menus_non_publies }}</h5>
+                            <small>Menus non publiés</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="text-info">{{ total_commandes }}</h5>
+                            <small>Total commandes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menus de la semaine -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-calendar-week me-2"></i>Menus de la semaine
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if menus_semaine %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Jour</th>
+                                        <th>Site</th>
+                                        <th>Titre</th>
+                                        <th>Statut</th>
+                                        <th>Commandes</th>
+                                        <th>Limite</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for menu in menus_semaine %}
+                                        <tr>
+                                            <td>{{ menu.date|date:"d/m/Y" }}</td>
+                                            <td>{{ menu.get_jour_display }}</td>
+                                            <td>
+                                                <span class="badge bg-light text-dark">{{ menu.site }}</span>
+                                            </td>
+                                            <td>
+                                                <strong>{{ menu.titre }}</strong>
+                                                {% if menu.description %}
+                                                    <br><small class="text-muted">{{ menu.description|truncatewords:5 }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if menu.est_publie %}
+                                                    <span class="badge bg-success">Publié</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Brouillon</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% widthratio menu.menuplat_set.all|length 1 1 as nb_plats %}
+                                                {{ nb_plats }} plats
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ menu.date_limite_commande|date:"d/m H:i" }}</small>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a href="{% url 'modifier_menu' menu.id %}" class="btn btn-outline-primary">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    {% if menu.est_publie %}
+                                                        <button class="btn btn-outline-warning" onclick="depublierMenu({{ menu.id }})">
+                                                            <i class="fas fa-eye-slash"></i>
+                                                        </button>
+                                                    {% else %}
+                                                        <button class="btn btn-outline-success" onclick="publierMenu({{ menu.id }})">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Aucun menu trouvé pour cette semaine.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Actions rapides
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="{% url 'gerer_menus_semaine' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-cog me-2"></i>Gérer les menus
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'suivi_commandes' %}" class="btn btn-info w-100">
+                                <i class="fas fa-chart-line me-2"></i>Suivi commandes
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-success w-100" onclick="publierTousMenus()">
+                                <i class="fas fa-globe me-2"></i>Publier tous
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-warning w-100" onclick="depublierTousMenus()">
+                                <i class="fas fa-eye-slash me-2"></i>Dépublier tous
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function publierMenu(menuId) {
+    if (confirm('Publier ce menu ? Il sera visible par tous les utilisateurs.')) {
+        // AJAX request
+        fetch('/menus/admin/publier-menu/' + menuId + '/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        });
+    }
+}
+
+function depublierMenu(menuId) {
+    if (confirm('Dépublier ce menu ? Il ne sera plus visible par les utilisateurs.')) {
+        // AJAX request
+        fetch('/menus/admin/depublier-menu/' + menuId + '/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        });
+    }
+}
+
+function publierTousMenus() {
+    if (confirm('Publier tous les menus de la semaine ?')) {
+        alert('Fonctionnalité en développement');
+    }
+}
+
+function depublierTousMenus() {
+    if (confirm('Dépublier tous les menus de la semaine ?')) {
+        alert('Fonctionnalité en développement');
+    }
+}
+</script>
+{% endblock %}

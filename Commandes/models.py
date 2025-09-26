@@ -30,5 +30,5 @@ class Commande(models.Model):
         return f"Commande #{self.id} - {self.utilisateur.prenom} {self.utilisateur.nom}"
     
     class Meta:
-        unique_together = ['utilisateur', 'menu']
+        unique_together = ['utilisateur', 'menu', 'plat']
         ordering = ['-created_at']

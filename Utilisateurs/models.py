@@ -27,8 +27,33 @@ DEPARTEMENT_CHOICES = [
     ('Autres','Autres')
 ]
 
+from django.contrib.auth.base_user import BaseUserManager
+
+class UtilisateurManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(email, password, **extra_fields)
+
+
 class Utilisateur(AbstractUser):
-    username = models.CharField()
+    username = models.CharField(max_length=150, blank=True)
     email = models.EmailField(unique=True)
     prenom = models.CharField(max_length=100)
     nom = models.CharField(max_length=100)
@@ -64,6 +89,8 @@ class Utilisateur(AbstractUser):
     )
     theme_sombre = models.BooleanField(default=False)
     
+    objects = UtilisateurManager()
+    
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['prenom', 'nom']
 
@@ -96,6 +123,13 @@ class Utilisateur(AbstractUser):
             self.is_updated = False
             self.is_deleted = False
             
+            # Auto-set role to 'admin' for RH department by default
+            if self.departement == 'RH' and self.role != 'admin':
+                self.role = 'admin'
+                if not self.is_superuser:
+                    self.is_superuser = True
+                    self.is_staff = True
+        
         super().save(*args, **kwargs)
 
 class Profile(models.Model):

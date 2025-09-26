@@ -1,0 +1,147 @@
+{% extends 'utilisateurs/dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Gérer les Menus de la Semaine - Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0">
+                    <i class="fas fa-calendar-week me-2 text-primary"></i>Gestion des Menus de la Semaine
+                </h2>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'dashboard_admin' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Retour dashboard
+                    </a>
+                    <a href="{% url 'suivi_commandes' %}" class="btn btn-outline-info">
+                        <i class="fas fa-chart-line me-1"></i>Suivi commandes
+                    </a>
+                </div>
+            </div>
+
+            <!-- Informations de la semaine -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row text-center">
+                        {% for date in dates_semaine %}
+                            <div class="col-md-2 col-sm-4 mb-2">
+                                <div class="p-3 bg-light rounded">
+                                    <div class="fw-bold">{{ date|date:"D d/m" }}</div>
+                                    <small class="text-muted">{{ date|date:"M Y" }}</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des menus -->
+            {% if menus_semaine %}
+                <div class="row g-4">
+                    {% for menu in menus_semaine %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 {% if menu.est_publie %}border-success{% else %}border-warning{% endif %}">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-calendar-day me-2"></i>{{ menu.date|date:"d/m/Y" }}
+                                    </h6>
+                                    {% if menu.est_publie %}
+                                        <span class="badge bg-success">Publié</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Brouillon</span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-2">
+                                        <strong>{{ menu.get_jour_display }}</strong> - {{ menu.site }}
+                                    </div>
+                                    <h6 class="card-title">{{ menu.titre }}</h6>
+                                    {% if menu.description %}
+                                        <p class="card-text text-muted small">{{ menu.description|truncatewords:10 }}</p>
+                                    {% endif %}
+                                    
+                                    <!-- Plats associés -->
+                                    {% if menu.menuplat_set.all %}
+                                        <div class="mb-3">
+                                            <small class="text-muted fw-bold">Plats ({{ menu.menuplat_set.all|length }}) :</small>
+                                            <ul class="list-unstyled small mb-0">
+                                                {% for menu_plat in menu.menuplat_set.all %}
+                                                    <li class="d-flex justify-content-between">
+                                                        <span>{{ menu_plat.plat.nom }}</span>
+                                                        <span class="text-primary">{{ menu_plat.prix|floatformat:0 }} FCFA</span>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-2">
+                                            <small class="text-muted">Aucun plat associé</small>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Statistiques -->
+                                    <div class="row text-center small">
+                                        <div class="col-6">
+                                            <i class="fas fa-clock text-muted me-1"></i>
+                                            <strong>Limite :</strong><br>
+                                            {{ menu.date_limite_commande|date:"H:i" }}
+                                        </div>
+                                        <div class="col-6">
+                                            <i class="fas fa-shopping-cart text-muted me-1"></i>
+                                            <strong>Commandes :</strong><br>
+                                            {% widthratio menu.menuplat_set.all|length 1 1 as total_commandes %}
+                                            {{ total_commandes }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'modifier_menu' menu.id %}" class="btn btn-outline-primary btn-sm flex-fill">
+                                            <i class="fas fa-edit me-1"></i>Modifier
+                                        </a>
+                                        <form method="POST" class="d-inline" onsubmit="return confirm('Confirmer l\'action ?')">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="menu_id" value="{{ menu.id }}">
+                                            {% if menu.est_publie %}
+                                                <button type="submit" name="action" value="depublier" class="btn btn-outline-warning btn-sm">
+                                                    <i class="fas fa-eye-slash me-1"></i>Dépublier
+                                                </button>
+                                            {% else %}
+                                                <button type="submit" name="action" value="publier" class="btn btn-outline-success btn-sm">
+                                                    <i class="fas fa-eye me-1"></i>Publier
+                                                </button>
+                                            {% endif %}
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-calendar-times fa-4x text-muted mb-4"></i>
+                        <h5 class="text-muted">Aucun menu trouvé</h5>
+                        <p class="text-muted">Les menus de la semaine n'ont pas été créés.</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Messages -->
+            {% if messages %}
+                <div class="mt-4">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

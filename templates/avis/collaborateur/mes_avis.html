@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes Avis - SAH Analytics{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-star me-2"></i>Mes Avis
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Statistiques personnelles -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h5 class="text-primary">{{ stats_perso.total_avis|default:0 }}</h5>
+                                <small>Total d'avis</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h5 class="text-warning">{{ stats_perso.moyenne_perso|floatformat:1|default:"0.0" }}/5</h5>
+                                <small>Moyenne personnelle</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h5 class="text-success">{{ stats_perso.avis_approuves|default:0 }}</h5>
+                                <small>Avis approuvés</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h5 class="text-info">{{ stats_perso.total_avis|sub:stats_perso.avis_approuves|default:0 }}</h5>
+                                <small>En attente</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bouton pour donner un avis -->
+                    <div class="mb-4">
+                        <a href="{% url 'donner_avis' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Donner un nouvel avis
+                        </a>
+                    </div>
+
+                    <!-- Liste des avis -->
+                    {% if page_obj %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Plat</th>
+                                        <th>Note</th>
+                                        <th>Commentaire</th>
+                                        <th>Date</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for avis in page_obj %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ avis.plat.nom }}</strong>
+                                                <br><small class="text-muted">{{ avis.plat.description|truncatewords:5 }}</small>
+                                            </td>
+                                            <td>
+                                                {% for i in avis.note|make_list %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% endfor %}
+                                                {% for i in "12345"|make_list|slice:avis.note %}
+                                                    <i class="far fa-star text-secondary"></i>
+                                                {% endfor %}
+                                                <br><small class="text-muted">({{ avis.note }}/5)</small>
+                                            </td>
+                                            <td>
+                                                {% if avis.commentaire %}
+                                                    {{ avis.commentaire|truncatewords:10 }}
+                                                {% else %}
+                                                    <span class="text-muted">Sans commentaire</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ avis.created_at|date:"d/m/Y H:i" }}</small>
+                                                {% if avis.is_updated %}
+                                                    <br><small class="text-info">Modifié le {{ avis.updated_at|date:"d/m/Y" }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if avis.est_approuve %}
+                                                    <span class="badge bg-success">Approuvé</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">En attente</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    {% if not avis.est_approuve %}
+                                                        <a href="{% url 'modifier_avis' avis.id %}" class="btn btn-outline-primary">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    <a href="{% url 'supprimer_avis' avis.id %}" class="btn btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet avis ?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4">
+                                                <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                                                <p class="text-muted">Vous n'avez pas encore donné d'avis.</p>
+                                                <a href="{% url 'menus_semaine' %}" class="btn btn-primary">Découvrir les menus</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if page_obj.has_other_pages %}
+                            <nav aria-label="Pagination des avis">
+                                <ul class="pagination justify-content-center mt-4">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédent</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivant</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

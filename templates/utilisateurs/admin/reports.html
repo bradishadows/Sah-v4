@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Rapports Statistiques - SAH Analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+.stat-card {
+    transition: transform 0.2s ease-in-out;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Rapports Statistiques</h1>
+                    <p class="text-gray-600 dark:text-gray-300 mt-2">Analyse détaillée des performances</p>
+                </div>
+
+                <!-- Sélecteur de période -->
+                <div class="flex gap-2">
+                    <a href="?periode=week" class="px-4 py-2 rounded-lg text-sm font-medium {% if periode == 'week' %}bg-blue-600 text-white{% else %}bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %} transition duration-200">
+                        Cette semaine
+                    </a>
+                    <a href="?periode=month" class="px-4 py-2 rounded-lg text-sm font-medium {% if periode == 'month' %}bg-blue-600 text-white{% else %}bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %} transition duration-200">
+                        Ce mois
+                    </a>
+                    <a href="?periode=year" class="px-4 py-2 rounded-lg text-sm font-medium {% if periode == 'year' %}bg-blue-600 text-white{% else %}bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %} transition duration-200">
+                        Cette année
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                Période analysée : {{ start_date|date:"d/m/Y" }} - {{ end_date|date:"d/m/Y" }}
+            </div>
+        </div>
+
+        <!-- Cartes de statistiques principales -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow stat-card p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
+                        <i class="fas fa-utensils text-blue-600 dark:text-blue-400"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Commandes</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.total_commandes }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow stat-card p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 dark:bg-green-900">
+                        <i class="fas fa-users text-green-600 dark:text-green-400"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Utilisateurs Actifs</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.total_utilisateurs }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow stat-card p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-900">
+                        <i class="fas fa-chart-line text-purple-600 dark:text-purple-400"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Moyenne par Utilisateur</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.moyenne_commandes_par_utilisateur }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow stat-card p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-orange-100 dark:bg-orange-900">
+                        <i class="fas fa-star text-orange-600 dark:text-orange-400"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Satisfaction Moyenne</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.avis_moyen }}/5</p>
+                        <p class="text-xs text-gray-500">{{ stats.total_avis }} avis</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graphiques et analyses -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+            <!-- Évolution des commandes -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Évolution des Commandes</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Derniers 7 jours</p>
+                </div>
+                <div class="p-6">
+                    <div class="chart-container">
+                        <canvas id="evolutionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Répartition par statut -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Répartition par Statut</h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        {% for statut in commandes_par_statut %}
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full mr-3
+                                    {% if statut.statut == 'confirmee' %}bg-green-500
+                                    {% elif statut.statut == 'en_attente' %}bg-yellow-500
+                                    {% elif statut.statut == 'annulee' %}bg-red-500
+                                    {% else %}bg-gray-500{% endif %}">
+                                </div>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white capitalize">
+                                    {{ statut.statut|default:"Non défini" }}
+                                </span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm font-bold text-gray-900 dark:text-white mr-2">{{ statut.count }}</span>
+                                <span class="text-xs text-gray-500">
+                                    ({{ statut.count|div:stats.total_commandes|mul:100|floatformat:1 }}%)
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tableaux détaillés -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <!-- Top plats -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Plats les Plus Populaires</h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        {% for plat in top_plats %}
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold mr-3">
+                                    {{ forloop.counter }}
+                                </div>
+                                <span class="font-medium text-gray-900 dark:text-white">{{ plat.plat__nom }}</span>
+                            </div>
+                            <span class="text-sm font-bold text-gray-600 dark:text-gray-400">{{ plat.count }} cmd</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Répartition par site -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Répartition par Site</h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        {% for site in commandes_par_site %}
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full bg-gradient-to-br from-green-500 to-blue-500 mr-3"></div>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">{{ site.utilisateur__site }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm font-bold text-gray-900 dark:text-white mr-2">{{ site.count }}</span>
+                                <span class="text-xs text-gray-500">
+                                    ({{ site.count|div:stats.total_commandes|mul:100|floatformat:1 }}%)
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boutons d'export -->
+        <div class="mt-8 flex justify-center gap-4">
+            <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
+                <i class="fas fa-download mr-2"></i>Exporter PDF
+            </button>
+            <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200">
+                <i class="fas fa-file-excel mr-2"></i>Exporter Excel
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js will be added later when needed -->
+{% endblock %}

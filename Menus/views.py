@@ -188,12 +188,12 @@ def consolidation_commandes(request):
     date_debut = request.GET.get('date_debut', get_semaine_courante()[0])
     date_fin = request.GET.get('date_fin', get_semaine_courante()[4])
     site = request.GET.get('site', 'Danga')
-    
+
     menus = Menu.objects.filter(
         date__range=[date_debut, date_fin],
         site=site
     )
-    
+
     consolidation = []
     for menu in menus:
         plats = MenuPlat.objects.filter(menu=menu).select_related('plat')
@@ -202,7 +202,7 @@ def consolidation_commandes(request):
             'plats': plats,
             'total_commandes': plats.aggregate(total=Sum('quantite_commandee'))['total'] or 0
         })
-    
+
     context = {
         'consolidation': consolidation,
         'date_debut': date_debut,
@@ -211,6 +211,96 @@ def consolidation_commandes(request):
         'sites': ['Danga', 'Campus']
     }
     return render(request, 'menus/prestataire/consolidation.html', context)
+
+@login_required
+@user_passes_test(is_prestataire)
+def prestataire_gerer_menus_semaine(request):
+    """Gestion des menus de la semaine pour prestataire"""
+    dates_semaine = get_semaine_courante()
+    sites = ['Danga', 'Campus']
+
+    # Créer les menus squelettes s'ils n'existent pas
+    for date_obj in dates_semaine:
+        for site in sites:
+            Menu.objects.get_or_create(
+                date=date_obj,
+                site=site,
+                defaults={
+                    'jour': date_obj.strftime('%A').lower(),
+                    'date_limite_commande': timezone.make_aware(
+                        datetime.combine(date_obj, datetime.min.time())
+                    ) + timedelta(hours=12),
+                    'created_by': request.user.id
+                }
+            )
+
+    menus_semaine = Menu.objects.filter(date__in=dates_semaine)
+
+    if request.method == 'POST':
+        # Gestion de la publication des menus
+        menu_id = request.POST.get('menu_id')
+        action = request.POST.get('action')
+
+        if menu_id and action:
+            menu = get_object_or_404(Menu, id=menu_id)
+            if action == 'publier':
+                menu.est_publie = True
+                menu.updated_by = request.user.id
+                menu.save()
+                messages.success(request, f"Menu du {menu.date} ({menu.site}) publié avec succès.")
+            elif action == 'depublier':
+                menu.est_publie = False
+                menu.updated_by = request.user.id
+                menu.save()
+                messages.success(request, f"Menu du {menu.date} ({menu.site}) dépublié.")
+
+    context = {
+        'menus_semaine': menus_semaine,
+        'dates_semaine': dates_semaine,
+        'sites': sites
+    }
+    return render(request, 'menus/prestataire/gerer_menus_semaine.html', context)
+
+@login_required
+@user_passes_test(is_prestataire)
+def create_or_edit_menu_prestataire(request, menu_id=None):
+    """Créer ou modifier un menu pour prestataire"""
+    if menu_id:
+        menu = get_object_or_404(Menu, id=menu_id)
+        is_editing = True
+    else:
+        menu = None
+        is_editing = False
+
+    plats_disponibles = Plat.objects.filter(est_actif=True, is_deleted=False)
+
+    if request.method == 'POST':
+        form = MenuForm(request.POST, instance=menu)
+        formset = MenuPlatFormSet(request.POST, instance=menu)
+
+        if form.is_valid() and formset.is_valid():
+            menu_instance = form.save(commit=False)
+            if not is_editing:
+                menu_instance.created_by = request.user.id
+            else:
+                menu_instance.updated_by = request.user.id
+            menu_instance.save()
+
+            formset.save()
+            messages.success(request, f"Menu {'modifié' if is_editing else 'créé'} avec succès.")
+            return redirect('prestataire_gerer_menus_semaine')
+    else:
+        form = MenuForm(instance=menu)
+        formset = MenuPlatFormSet(instance=menu)
+
+    context = {
+        'menu': menu,
+        'form': form,
+        'formset': formset,
+        'plats_disponibles': plats_disponibles,
+        'is_editing': is_editing
+    }
+    return render(request, 'menus/prestataire/create_menu.html', context)
 
 
 

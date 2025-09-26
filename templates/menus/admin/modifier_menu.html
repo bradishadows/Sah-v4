@@ -1,0 +1,206 @@
+{% extends 'utilisateurs/dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Modifier Menu - Admin{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Modifier le menu du {{ menu.date|date:"d/m/Y" }} - {{ menu.site }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <!-- Informations générales -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ form.titre.label_tag }}
+                                {{ form.titre }}
+                                {% if form.titre.errors %}
+                                    <div class="text-danger small">{{ form.titre.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.description.label_tag }}
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger small">{{ form.description.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                {{ form.date_limite_commande.label_tag }}
+                                {{ form.date_limite_commande }}
+                                {% if form.date_limite_commande.errors %}
+                                    <div class="text-danger small">{{ form.date_limite_commande.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Site</label>
+                                <input type="text" class="form-control" value="{{ menu.site }}" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Jour</label>
+                                <input type="text" class="form-control" value="{{ menu.get_jour_display }}" readonly>
+                            </div>
+                        </div>
+                        
+                        <!-- Plats associés -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3">
+                                <i class="fas fa-utensils me-2"></i>Plats du menu
+                            </h6>
+                            
+                            {{ formset.management_form }}
+                            
+                            <div id="plats-container">
+                                {% for form_plat in formset %}
+                                    <div class="card mb-3 plat-card">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    {{ form_plat.plat.label_tag }}
+                                                    {{ form_plat.plat }}
+                                                    {% if form_plat.plat.errors %}
+                                                        <div class="text-danger small">{{ form_plat.plat.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-3">
+                                                    {{ form_plat.prix.label_tag }}
+                                                    {{ form_plat.prix }}
+                                                    {% if form_plat.prix.errors %}
+                                                        <div class="text-danger small">{{ form_plat.prix.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-3">
+                                                    {{ form_plat.quantite_max.label_tag }}
+                                                    {{ form_plat.quantite_max }}
+                                                    {% if form_plat.quantite_max.errors %}
+                                                        <div class="text-danger small">{{ form_plat.quantite_max.errors }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-2 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm remove-plat">
+                                                        <i class="fas fa-trash"></i> Supprimer
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {% for hidden in form_plat.hidden_fields %}
+                                                {{ hidden }}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <button type="button" id="add-plat" class="btn btn-outline-primary">
+                                <i class="fas fa-plus me-2"></i>Ajouter un plat
+                            </button>
+                        </div>
+                        
+                        <!-- Boutons d'action -->
+                        <div class="d-flex gap-3 justify-content-between">
+                            <a href="{% url 'gerer_menus_semaine' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Retour à la gestion
+                            </a>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Enregistrer les modifications
+                                </button>
+                                {% if menu.est_publie %}
+                                    <button type="submit" name="depublier" class="btn btn-warning">
+                                        <i class="fas fa-eye-slash me-2"></i>Enregistrer et dépublier
+                                    </button>
+                                {% else %}
+                                    <button type="submit" name="publier" class="btn btn-success">
+                                        <i class="fas fa-eye me-2"></i>Enregistrer et publier
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+                <div class="mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addPlatBtn = document.getElementById('add-plat');
+    const platsContainer = document.getElementById('plats-container');
+    
+    // Ajouter un plat
+    addPlatBtn.addEventListener('click', function() {
+        const platCards = document.querySelectorAll('.plat-card');
+        const totalForms = document.querySelector('#id_menuplat_set-TOTAL_FORMS');
+        const newIndex = platCards.length;
+        
+        // Créer une nouvelle carte de plat
+        const newCard = document.createElement('div');
+        newCard.className = 'card mb-3 plat-card';
+        newCard.innerHTML = `
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Plat</label>
+                        <select name="menuplat_set-${newIndex}-plat" class="form-select">
+                            {% for plat in plats_disponibles %}
+                                <option value="{{ plat.id }}">{{ plat.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Prix</label>
+                        <input type="number" name="menuplat_set-${newIndex}-prix" class="form-control" step="0.01" min="0">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Quantité max</label>
+                        <input type="number" name="menuplat_set-${newIndex}-quantite_max" class="form-control" min="0">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-plat">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" name="menuplat_set-${newIndex}-id" value="">
+                <input type="hidden" name="menuplat_set-${newIndex}-menu" value="{{ menu.id }}">
+            </div>
+        `;
+        
+        platsContainer.appendChild(newCard);
+        totalForms.value = parseInt(totalForms.value) + 1;
+    });
+    
+    // Supprimer un plat
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-plat') || e.target.closest('.remove-plat')) {
+            e.target.closest('.plat-card').remove();
+            const totalForms = document.querySelector('#id_menuplat_set-TOTAL_FORMS');
+            totalForms.value = parseInt(totalForms.value) - 1;
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Modifier Avis - SAH Analytics{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Modifier votre Avis
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Information sur l'avis existant -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <img src="{% if avis.plat.image %}{{ avis.plat.image.url }}{% else %}{% static 'images/plat-default.jpg' %}{% endif %}" 
+                                 alt="{{ avis.plat.nom }}" class="img-fluid rounded" style="height: 200px; object-fit: cover;">
+                        </div>
+                        <div class="col-md-8">
+                            <h5 class="text-primary">{{ avis.plat.nom }}</h5>
+                            <p class="text-muted">{{ avis.plat.description|truncatewords:15 }}</p>
+                            <div class="mt-2">
+                                <strong>Note actuelle : </strong>
+                                {% for i in avis.note|make_list %}
+                                    <i class="fas fa-star text-warning"></i>
+                                {% endfor %}
+                                {% for i in "12345"|make_list|slice:avis.note %}
+                                    <i class="far fa-star text-secondary"></i>
+                                {% endfor %}
+                                <span class="text-muted">({{ avis.note }}/5)</span>
+                            </div>
+                            {% if avis.commentaire %}
+                                <div class="mt-2">
+                                    <strong>Commentaire actuel : </strong>
+                                    <p class="border-start ps-3">{{ avis.commentaire }}</p>
+                                </div>
+                            {% endif %}
+                            {% if avis.est_anonyme %}
+                                <div class="mt-1">
+                                    <small class="badge bg-secondary">Avis anonyme</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Formulaire de modification -->
+                    <form method="POST" id="modifierAvisForm">
+                        {% csrf_token %}
+                        
+                        <!-- Note avec étoiles -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Nouvelle note (1-5 étoiles)</label>
+                            <div class="star-rating mb-3">
+                                {% for i in note_range %}
+                                    <input type="radio" id="star{{ i }}" name="note" value="{{ i }}"
+                                           class="star-rating-input" 
+                                           {% if avis.note == i %}checked{% endif %}
+                                           required>
+                                    <label for="star{{ i }}" class="star-rating-label">
+                                        <i class="fas fa-star"></i>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted">Sélectionnez votre nouvelle note</small>
+                        </div>
+
+                        <!-- Commentaire -->
+                        <div class="mb-4">
+                            <label for="commentaire" class="form-label fw-bold">Nouveau commentaire (optionnel)</label>
+                            <textarea name="commentaire" id="commentaire" rows="5" 
+                                      class="form-control" 
+                                      placeholder="Modifiez votre commentaire... (max 500 caractères)"
+                                      maxlength="500">{{ avis.commentaire }}</textarea>
+                            <div class="form-text">
+                                <small class="text-muted">{{ avis.commentaire|length }}/500 caractères</small>
+                            </div>
+                        </div>
+
+                        <!-- Anonymat -->
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" id="est_anonyme" name="est_anonyme"
+                                   {% if avis.est_anonyme %}checked{% endif %}>
+                            <label class="form-check-label" for="est_anonyme">
+                                <i class="fas fa-user-secret me-1"></i>
+                                Publier de manière anonyme
+                            </label>
+                            <div class="form-text">
+                                Votre nom ne sera pas affiché si coché.
+                            </div>
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="d-flex gap-3 justify-content-between">
+                            <a href="{% url 'mes_avis' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Retour à mes avis
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save me-2"></i>Modifier l'avis
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+                <div class="mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.star-rating-input {
+    display: none;
+}
+
+.star-rating-label {
+    color: #ddd;
+    cursor: pointer;
+    font-size: 2rem;
+    transition: color 0.2s;
+    margin: 0 2px;
+}
+
+.star-rating-label:hover,
+.star-rating-label:hover ~ .star-rating-label,
+.star-rating-input:checked ~ .star-rating-label {
+    color: #ffd700;
+}
+
+.star-rating-label i {
+    transition: transform 0.2s;
+}
+
+.star-rating-label:hover i {
+    transform: scale(1.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('modifierAvisForm');
+    const commentaire = document.getElementById('commentaire');
+    
+    // Compteur de caractères
+    commentaire.addEventListener('input', function() {
+        const counter = document.querySelector('.form-text small');
+        if (counter) {
+            counter.textContent = this.value.length + '/500 caractères';
+        }
+    });
+    
+    // Validation du formulaire
+    form.addEventListener('submit', function(e) {
+        const note = document.querySelector('input[name="note"]:checked');
+        if (!note) {
+            e.preventDefault();
+            alert('Veuillez sélectionner une note avant de modifier.');
+            return false;
+        }
+        
+        if (!confirm('Êtes-vous sûr de vouloir modifier cet avis ?')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}
